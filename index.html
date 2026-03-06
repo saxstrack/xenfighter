@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xenocs Fighter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <section id="character-select" class="screen active">
+      <img src="assets/xenocs_fighter_title.png" alt="Xenocs Fighter" class="title-logo" />
+      <div class="select-row">
+        <div class="select-col">
+          <h3>Player 1</h3>
+          <div class="select-card selected" data-player="1" data-char="rook">
+            <img src="assets/fighter-select.png" alt="Rook" />
+            <h2>Lasse</h2>
+            <p>Balanced brawler. Good range, quick startup.</p>
+          </div>
+          <div class="select-card" data-player="1" data-char="voss">
+            <img src="assets/fighter2-select.png" alt="Voss" />
+            <h2>Al</h2>
+            <p>Heavy hitter. Slow but devastating power.</p>
+          </div>
+        </div>
+        <div class="select-col">
+          <h3>Player 2</h3>
+          <div class="select-card" data-player="2" data-char="rook">
+            <img src="assets/fighter-select.png" alt="Rook" />
+            <h2>Lasse</h2>
+            <p>Balanced brawler. Good range, quick startup.</p>
+          </div>
+          <div class="select-card selected" data-player="2" data-char="voss">
+            <img src="assets/fighter2-select.png" alt="Voss" />
+            <h2>Al</h2>
+            <p>Heavy hitter. Slow but devastating power.</p>
+          </div>
+        </div>
+      </div>
+      <h3>Select Stage</h3>
+      <div class="stage-row">
+        <div class="stage-card selected" data-stage="0">
+          <img src="assets/demolab.jpg" alt="Demo Lab" />
+          <span>Demo Lab</span>
+        </div>
+        <div class="stage-card" data-stage="1">
+          <img src="assets/unnamed.jpg" alt="Arcade Street" />
+          <span>Arcade Street</span>
+        </div>
+      </div>
+      <button id="start-btn">Start Match</button>
+      <p class="hint">P1: A/D move, W jump, S block, F punch, G kick<br>P2: ←/→ move, ↑ jump, ↓ block, K punch, L kick</p>
+    </section>
+
+    <section id="fight-screen" class="screen">
+      <div class="hud">
+        <div class="bar-wrap">
+          <div class="name" id="p1-name">P1 Rook</div>
+          <div class="bar"><div id="p1-health" class="fill p1"></div></div>
+        </div>
+        <div id="timer">99</div>
+        <div class="bar-wrap right">
+          <div class="name" id="p2-name">P2 Rook</div>
+          <div class="bar"><div id="p2-health" class="fill p2"></div></div>
+        </div>
+      </div>
+      <canvas id="game" width="960" height="540"></canvas>
+      <div id="result" class="result hidden"></div>
+      <button id="rematch-btn" class="hidden">Rematch</button>
+    </section>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
