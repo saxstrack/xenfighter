@@ -47,6 +47,21 @@ const FRAMES = {
 const P1_KEYS = { left: 'a', right: 'd', jump: 'w', block: 's', punch: 'f', kick: 'g' };
 const P2_KEYS = { left: 'ArrowLeft', right: 'ArrowRight', jump: 'ArrowUp', block: 'ArrowDown', punch: 'k', kick: 'l' };
 
+const INTRO_TAUNTS = {
+  rook: [
+    "Let's get this over with.",
+    "You picked the wrong fight.",
+    "Time to teach you a lesson.",
+    "Hope you're ready for pain.",
+  ],
+  voss: [
+    "You won't last a minute.",
+    "I'll crush you.",
+    "This ends now.",
+    "Prepare yourself.",
+  ],
+};
+
 const TAUNTS = {
   rook: [
     "You scared?",
@@ -81,13 +96,14 @@ const state = {
   timerAcc: 0,
   keys: new Set(),
   players: [],
+  intro: null,
 };
 
 
 function makePlayer(x, controls, charId) {
   return {
     x,
-    y: H - 145,
+    y: H - 20 - 240,
     vx: 0,
     vy: 0,
     w: 160,
@@ -110,8 +126,28 @@ function makePlayer(x, controls, charId) {
 }
 
 
+// Intro phases: zoomP1 (1.5s) → tauntP1 (2s) → zoomP2 (1.5s) → tauntP2 (2s) → zoomOut (1s)
+const INTRO_PHASES = [
+  { name: 'zoomP1',  duration: 1.0 },
+  { name: 'tauntP1', duration: 2.0 },
+  { name: 'zoomP2',  duration: 1.0 },
+  { name: 'tauntP2', duration: 2.0 },
+  { name: 'zoomOut', duration: 1.0 },
+];
+
+function startIntro() {
+  const p1Taunts = INTRO_TAUNTS[p1Selection.char];
+  const p2Taunts = INTRO_TAUNTS[p2Selection.char];
+  state.intro = {
+    phase: 0,
+    elapsed: 0,
+    p1Taunt: p1Taunts[Math.floor(Math.random() * p1Taunts.length)],
+    p2Taunt: p2Taunts[Math.floor(Math.random() * p2Taunts.length)],
+  };
+}
+
 function resetMatch() {
-  state.running = true;
+  state.running = false;
   state.time = 99;
   state.timerAcc = 0;
   state.lastTime = performance.now();
@@ -119,11 +155,14 @@ function resetMatch() {
     makePlayer(220, P1_KEYS, p1Selection.char),
     makePlayer(740, P2_KEYS, p2Selection.char),
   ];
+  state.players[0].facing = 1;
+  state.players[1].facing = -1;
   document.getElementById('p1-name').textContent = 'P1 ' + CHARACTERS[p1Selection.char].name;
   document.getElementById('p2-name').textContent = 'P2 ' + CHARACTERS[p2Selection.char].name;
   updateHud();
   resultEl.classList.add('hidden');
   rematchBtn.classList.add('hidden');
+  startIntro();
   requestAnimationFrame(loop);
 }
 
@@ -402,11 +441,169 @@ function drawTauntBubble(p) {
   ctx.restore();
 }
 
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+}
+
+function getIntroCamera() {
+  const intro = state.intro;
+  if (!intro) return { x: 0, y: 0, scale: 1 };
+
+  const phase = INTRO_PHASES[intro.phase];
+  const t = Math.min(1, intro.elapsed / phase.duration);
+  const et = easeInOut(t);
+
+  const [p1, p2] = state.players;
+  const p1cx = p1.x + p1.w / 2, p1cy = p1.y + p1.h * 0.45;
+  const p2cx = p2.x + p2.w / 2, p2cy = p2.y + p2.h * 0.45;
+  const zoomScale = 1.6;
+
+  switch (phase.name) {
+    case 'zoomP1':
+      return {
+        x: lerp(0, W / 2 - p1cx * zoomScale, et),
+        y: lerp(0, H / 2 - p1cy * zoomScale, et),
+        scale: lerp(1, zoomScale, et),
+      };
+    case 'tauntP1':
+      return {
+        x: W / 2 - p1cx * zoomScale,
+        y: H / 2 - p1cy * zoomScale,
+        scale: zoomScale,
+      };
+    case 'zoomP2':
+      return {
+        x: lerp(W / 2 - p1cx * zoomScale, W / 2 - p2cx * zoomScale, et),
+        y: lerp(H / 2 - p1cy * zoomScale, H / 2 - p2cy * zoomScale, et),
+        scale: zoomScale,
+      };
+    case 'tauntP2':
+      return {
+        x: W / 2 - p2cx * zoomScale,
+        y: H / 2 - p2cy * zoomScale,
+        scale: zoomScale,
+      };
+    case 'zoomOut':
+      return {
+        x: lerp(W / 2 - p2cx * zoomScale, 0, et),
+        y: lerp(H / 2 - p2cy * zoomScale, 0, et),
+        scale: lerp(zoomScale, 1, et),
+      };
+    default:
+      return { x: 0, y: 0, scale: 1 };
+  }
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function getIntroTaunt() {
+  const intro = state.intro;
+  if (!intro) return null;
+  const phase = INTRO_PHASES[intro.phase];
+  if (phase.name === 'tauntP1') return { player: 0, msg: intro.p1Taunt };
+  if (phase.name === 'tauntP2') return { player: 1, msg: intro.p2Taunt };
+  return null;
+}
+
+function drawIntroBubble(p, msg) {
+  ctx.save();
+  ctx.font = 'bold 16px Inter, system-ui, sans-serif';
+  const padding = 14;
+  const textW = ctx.measureText(msg).width;
+  const bw = textW + padding * 2;
+  const bh = 34;
+  const bx = p.x + p.w / 2 - bw / 2;
+  const by = p.y - 50;
+  const tailSize = 8;
+
+  const cx = Math.max(4, Math.min(W - bw - 4, bx));
+
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(cx, by, bw, bh, 10);
+  ctx.fill();
+  ctx.stroke();
+
+  const tailX = p.x + p.w / 2;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.moveTo(tailX - tailSize, by + bh);
+  ctx.lineTo(tailX + tailSize, by + bh);
+  ctx.lineTo(tailX, by + bh + tailSize);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.beginPath();
+  ctx.moveTo(tailX - tailSize, by + bh);
+  ctx.lineTo(tailX, by + bh + tailSize);
+  ctx.lineTo(tailX + tailSize, by + bh);
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(tailX - tailSize + 1, by + bh - 1, tailSize * 2 - 2, 3);
+
+  ctx.fillStyle = '#111';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(msg, cx + bw / 2, by + bh / 2);
+  ctx.restore();
+}
+
 function render(t) {
   ctx.clearRect(0, 0, W, H);
+
+  const cam = getIntroCamera();
+  ctx.save();
+  ctx.translate(cam.x, cam.y);
+  ctx.scale(cam.scale, cam.scale);
+
   drawBackground();
   for (const p of state.players) drawFighter(p, t);
-  for (const p of state.players) drawTauntBubble(p);
+
+  // Intro taunt bubble + name
+  const introTaunt = getIntroTaunt();
+  if (introTaunt) {
+    const ip = state.players[introTaunt.player];
+    drawIntroBubble(ip, introTaunt.msg);
+    // Draw character name below fighter
+    ctx.save();
+    ctx.font = 'bold 18px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 3;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    const nameX = ip.x + ip.w / 2;
+    const nameY = ip.y + ip.h + 8;
+    const name = CHARACTERS[ip.charId].name;
+    ctx.strokeText(name, nameX, nameY);
+    ctx.fillText(name, nameX, nameY);
+    ctx.restore();
+  }
+
+  // In-game taunt bubbles (only during match)
+  if (state.running) {
+    for (const p of state.players) drawTauntBubble(p);
+  }
+
+  ctx.restore();
+
+  // Draw "FIGHT!" text at end of intro
+  if (state.intro && INTRO_PHASES[state.intro.phase].name === 'zoomOut') {
+    const ft = Math.min(1, state.intro.elapsed / INTRO_PHASES[state.intro.phase].duration);
+    ctx.save();
+    ctx.globalAlpha = 1 - ft;
+    ctx.font = 'bold 64px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#e53935';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 4;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.strokeText('FIGHT!', W / 2, H / 2);
+    ctx.fillText('FIGHT!', W / 2, H / 2);
+    ctx.restore();
+  }
 
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.font = '12px monospace';
@@ -424,7 +621,21 @@ function loop(now) {
   const dt = Math.min(0.033, (now - state.lastTime) / 1000);
   state.lastTime = now;
 
-  if (state.running) {
+  if (state.intro) {
+    state.intro.elapsed += dt;
+    const phase = INTRO_PHASES[state.intro.phase];
+    if (state.intro.elapsed >= phase.duration) {
+      state.intro.elapsed = 0;
+      state.intro.phase++;
+      if (state.intro.phase >= INTRO_PHASES.length) {
+        state.intro = null;
+        state.running = true;
+        state.lastTime = now;
+      }
+    }
+    render(now);
+    requestAnimationFrame(loop);
+  } else if (state.running) {
     simulate(dt);
     render(now);
     requestAnimationFrame(loop);
