@@ -3,21 +3,28 @@
 1. Copy this `template/` folder to `characters/your_id/`
 2. Replace all `CHANGE_ME` in `character.json` with your character's id
 3. Fill in name, description, stats, and taunts
-4. Create sprite strips in `characters/your_id/sprites/`:
-   - Each action gets its own PNG strip (horizontal frames)
-   - Required actions: idle, block, punch, kick, taunt, jump, hit, duck, win
-   - Update `cols` in each action to match your frame count
-5. Add a `select.png` portrait image
-6. Add your character id to `characters/index.json`
+4. Set `spriteSheet` to the path of your mega-sheet PNG (e.g. `assets/your-poses.png`)
+5. Define frame source rects in each action's `frames` array — each frame is `{x, y, w, h}` on the mega-sheet
+6. Add a `select.png` portrait image
+7. Add your character id to `characters/index.json`
 
-## Using the sprite splitter (if you have a mega sheet)
+## Using the sprite editor
+
+Open `sprite-test.html` to visually define frame rects on the mega-sheet:
+- Select your character and action
+- Drag/resize frame rectangles on the mega-sheet
+- Add/remove/reorder frames
+- Set per-action hitboxes for punch/kick
+- Export the updated character.json (Copy or Download)
+
+## Generating initial frame rects from a uniform grid
 
 ```bash
 source .venv/bin/activate
-python tools/split_sprites.py characters/your_id path/to/sheet.png [cols] [rows]
+python tools/generate_initial_frames.py path/to/sheet.png
 ```
 
-Default grid is 5x3 (15 frames). The script auto-updates character.json with the actions map.
+Outputs the `actions` block with uniform 5x3 grid rects as a starting point.
 
 ## Testing
 

@@ -15,10 +15,19 @@ const CharacterLoader = {
       const resp = await fetch(`characters/${id}/character.json`);
       const data = await resp.json();
 
-      // Preload per-action sprite sheets
+      // Character-level spriteSheet
+      if (data.spriteSheet) {
+        data.spriteSheetImg = await loadImage(data.spriteSheet);
+      }
+
+      // Per-action sprite sheets (new format with per-action spriteSheet, or legacy strip format)
       data.actionImages = {};
       await Promise.all(Object.entries(data.actions).map(async ([action, info]) => {
-        data.actionImages[action] = await loadImage(info.sheet);
+        if (info.spriteSheet) {
+          data.actionImages[action] = await loadImage(info.spriteSheet);
+        } else if (info.sheet) {
+          data.actionImages[action] = await loadImage(info.sheet);
+        }
       }));
 
       // Preload portrait

@@ -3,6 +3,7 @@
   "name": "Al",
   "description": "Heavy hitter. Slow but devastating power.",
   "portrait": "characters/al/select.png",
+  "spriteSheet": "assets/fighter-poses2.png",
   "stats": {
     "speed": 220,
     "jumpForce": 500,
@@ -35,49 +36,55 @@
   },
   "actions": {
     "idle": {
-      "sheet": "characters/al/sprites/idle.png",
-      "cols": 2,
-      "rows": 1
+      "frames": [
+        { "x": 0, "y": 0, "w": 205, "h": 341 },
+        { "x": 205, "y": 0, "w": 205, "h": 341 }
+      ]
     },
     "block": {
-      "sheet": "characters/al/sprites/block.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 410, "y": 0, "w": 205, "h": 341 }
+      ]
     },
     "punch": {
-      "sheet": "characters/al/sprites/punch.png",
-      "cols": 3,
-      "rows": 1
+      "frames": [
+        { "x": 614, "y": 0, "w": 205, "h": 341 },
+        { "x": 819, "y": 0, "w": 205, "h": 341 },
+        { "x": 0, "y": 341, "w": 205, "h": 341 }
+      ]
     },
     "kick": {
-      "sheet": "characters/al/sprites/kick.png",
-      "cols": 4,
-      "rows": 1
+      "frames": [
+        { "x": 205, "y": 341, "w": 205, "h": 341 },
+        { "x": 410, "y": 341, "w": 205, "h": 341 },
+        { "x": 614, "y": 341, "w": 205, "h": 341 },
+        { "x": 819, "y": 341, "w": 205, "h": 341 }
+      ]
     },
     "taunt": {
-      "sheet": "characters/al/sprites/taunt.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 0, "y": 683, "w": 205, "h": 341 }
+      ]
     },
     "jump": {
-      "sheet": "characters/al/sprites/jump.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 205, "y": 683, "w": 205, "h": 341 }
+      ]
     },
     "hit": {
-      "sheet": "characters/al/sprites/hit.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 410, "y": 683, "w": 205, "h": 341 }
+      ]
     },
     "duck": {
-      "sheet": "characters/al/sprites/duck.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 614, "y": 683, "w": 205, "h": 341 }
+      ]
     },
     "win": {
-      "sheet": "characters/al/sprites/win.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 819, "y": 683, "w": 205, "h": 341 }
+      ]
     }
   }
 }

@@ -3,6 +3,7 @@
   "name": "Lasse",
   "description": "Balanced brawler. Good range, quick startup.",
   "portrait": "characters/lasse/select.png",
+  "spriteSheet": "assets/fighter-poses.png",
   "stats": {
     "speed": 260,
     "jumpForce": 540,
@@ -35,49 +36,55 @@
   },
   "actions": {
     "idle": {
-      "sheet": "characters/lasse/sprites/idle.png",
-      "cols": 2,
-      "rows": 1
+      "frames": [
+        { "x": 0, "y": 0, "w": 307, "h": 341 },
+        { "x": 307, "y": 0, "w": 307, "h": 341 }
+      ]
     },
     "block": {
-      "sheet": "characters/lasse/sprites/block.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 614, "y": 0, "w": 307, "h": 341 }
+      ]
     },
     "punch": {
-      "sheet": "characters/lasse/sprites/punch.png",
-      "cols": 3,
-      "rows": 1
+      "frames": [
+        { "x": 922, "y": 0, "w": 307, "h": 341 },
+        { "x": 1229, "y": 0, "w": 307, "h": 341 },
+        { "x": 0, "y": 341, "w": 307, "h": 341 }
+      ]
     },
     "kick": {
-      "sheet": "characters/lasse/sprites/kick.png",
-      "cols": 4,
-      "rows": 1
+      "frames": [
+        { "x": 307, "y": 341, "w": 307, "h": 341 },
+        { "x": 614, "y": 341, "w": 307, "h": 341 },
+        { "x": 922, "y": 341, "w": 307, "h": 341 },
+        { "x": 1229, "y": 341, "w": 307, "h": 341 }
+      ]
     },
     "taunt": {
-      "sheet": "characters/lasse/sprites/taunt.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 0, "y": 683, "w": 307, "h": 341 }
+      ]
     },
     "jump": {
-      "sheet": "characters/lasse/sprites/jump.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 307, "y": 683, "w": 307, "h": 341 }
+      ]
     },
     "hit": {
-      "sheet": "characters/lasse/sprites/hit.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 614, "y": 683, "w": 307, "h": 341 }
+      ]
     },
     "duck": {
-      "sheet": "characters/lasse/sprites/duck.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 922, "y": 683, "w": 307, "h": 341 }
+      ]
     },
     "win": {
-      "sheet": "characters/lasse/sprites/win.png",
-      "cols": 1,
-      "rows": 1
+      "frames": [
+        { "x": 1229, "y": 683, "w": 307, "h": 341 }
+      ]
     }
   }
 }

@@ -254,14 +254,30 @@ function handleHit(attacker, defender) {
   if (attacker.actionTime <= 0.10) return;
   if (defender.hitCooldown > 0) return;
 
-  const stats = getChar(attacker.charId).stats;
-  const range = attacker.action === 'punch' ? stats.punchRange : stats.kickRange;
-  const hitbox = {
-    x: attacker.facing === 1 ? attacker.x + attacker.w - 8 : attacker.x - range + 8,
-    y: attacker.y + 20,
-    w: range,
-    h: attacker.h - 28,
-  };
+  const charData = getChar(attacker.charId);
+  const stats = charData.stats;
+  const actionInfo = charData.actions[attacker.action];
+  let hitbox;
+
+  if (actionInfo && actionInfo.hitbox) {
+    // New format: per-action hitbox in game coords (160x240 space)
+    const hb = actionInfo.hitbox;
+    hitbox = {
+      x: attacker.facing === 1 ? attacker.x + hb.x : attacker.x + attacker.w - hb.x - hb.w,
+      y: attacker.y + hb.y,
+      w: hb.w,
+      h: hb.h,
+    };
+  } else {
+    // Legacy: global punchRange/kickRange
+    const range = attacker.action === 'punch' ? stats.punchRange : stats.kickRange;
+    hitbox = {
+      x: attacker.facing === 1 ? attacker.x + attacker.w - 8 : attacker.x - range + 8,
+      y: attacker.y + 20,
+      w: range,
+      h: attacker.h - 28,
+    };
+  }
 
   if (!intersects(hitbox, defender)) return;
 
@@ -287,6 +303,10 @@ function drawBackground() {
   }
 }
 
+function actionFrameCount(actionInfo) {
+  return actionInfo.frames ? actionInfo.frames.length : (actionInfo.cols * (actionInfo.rows || 1));
+}
+
 function actionFrameForPlayer(p, t) {
   const charData = getChar(p.charId);
   const stats = charData.stats;
@@ -297,18 +317,18 @@ function actionFrameForPlayer(p, t) {
   switch (p.action) {
     case 'block': return { action: 'block', index: 0 };
     case 'punch': {
-      const count = charData.actions.punch.cols;
+      const count = actionFrameCount(charData.actions.punch);
       const idx = Math.floor((stats.punchDuration - p.actionTime) / 0.075);
       return { action: 'punch', index: Math.max(0, Math.min(count - 1, idx)) };
     }
     case 'kick': {
-      const count = charData.actions.kick.cols;
+      const count = actionFrameCount(charData.actions.kick);
       const idx = Math.floor((stats.kickDuration - p.actionTime) / 0.075);
       return { action: 'kick', index: Math.max(0, Math.min(count - 1, idx)) };
     }
     case 'hit': return { action: 'hit', index: 0 };
     default: {
-      const count = charData.actions.idle.cols;
+      const count = actionFrameCount(charData.actions.idle);
       return { action: 'idle', index: Math.floor((t / 260) % count) };
     }
   }
@@ -317,14 +337,25 @@ function actionFrameForPlayer(p, t) {
 function drawFighter(p, t) {
   const charData = getChar(p.charId);
   const af = actionFrameForPlayer(p, t);
-
   const actionInfo = charData.actions[af.action];
-  const src = charData.actionImages[af.action];
+
+  let src, sx, sy, sw, sh;
+
+  if (actionInfo.frames) {
+    // New format: source rects — per-action spriteSheet takes priority over character-level
+    src = (actionInfo.spriteSheet && charData.actionImages[af.action]) || charData.spriteSheetImg;
+    const frame = actionInfo.frames[af.index];
+    sx = frame.x; sy = frame.y; sw = frame.w; sh = frame.h;
+  } else {
+    // Legacy format: per-action strip
+    src = charData.actionImages && charData.actionImages[af.action];
+    sw = src.width / actionInfo.cols;
+    sh = src.height / actionInfo.rows;
+    sx = af.index * sw;
+    sy = 0;
+  }
+
   if (!src || !src.complete) return;
-  const cellW = src.width / actionInfo.cols;
-  const cellH = src.height / actionInfo.rows;
-  const sx = af.index * cellW;
-  const sy = 0;
 
   ctx.save();
   ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
@@ -332,7 +363,7 @@ function drawFighter(p, t) {
 
   ctx.drawImage(
     src,
-    sx, sy, cellW, cellH,
+    sx, sy, sw, sh,
     -p.w / 2,
     -p.h / 2,
     p.w,

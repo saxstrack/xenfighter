@@ -3,6 +3,7 @@
   "name": "Character Name",
   "description": "Short description for select screen.",
   "portrait": "characters/CHANGE_ME/select.png",
+  "spriteSheet": "assets/CHANGE_ME-poses.png",
   "stats": {
     "speed": 260,
     "jumpForce": 540,
@@ -25,14 +26,14 @@
     ]
   },
   "actions": {
-    "idle":  { "sheet": "characters/CHANGE_ME/sprites/idle.png",  "cols": 2, "rows": 1 },
-    "block": { "sheet": "characters/CHANGE_ME/sprites/block.png", "cols": 1, "rows": 1 },
-    "punch": { "sheet": "characters/CHANGE_ME/sprites/punch.png", "cols": 3, "rows": 1 },
-    "kick":  { "sheet": "characters/CHANGE_ME/sprites/kick.png",  "cols": 4, "rows": 1 },
-    "taunt": { "sheet": "characters/CHANGE_ME/sprites/taunt.png", "cols": 1, "rows": 1 },
-    "jump":  { "sheet": "characters/CHANGE_ME/sprites/jump.png",  "cols": 1, "rows": 1 },
-    "hit":   { "sheet": "characters/CHANGE_ME/sprites/hit.png",   "cols": 1, "rows": 1 },
-    "duck":  { "sheet": "characters/CHANGE_ME/sprites/duck.png",  "cols": 1, "rows": 1 },
-    "win":   { "sheet": "characters/CHANGE_ME/sprites/win.png",   "cols": 1, "rows": 1 }
+    "idle":  { "frames": [ { "x": 0, "y": 0, "w": 200, "h": 300 }, { "x": 200, "y": 0, "w": 200, "h": 300 } ] },
+    "block": { "frames": [ { "x": 400, "y": 0, "w": 200, "h": 300 } ] },
+    "punch": { "frames": [ { "x": 600, "y": 0, "w": 200, "h": 300 }, { "x": 800, "y": 0, "w": 200, "h": 300 }, { "x": 0, "y": 300, "w": 200, "h": 300 } ] },
+    "kick":  { "frames": [ { "x": 200, "y": 300, "w": 200, "h": 300 }, { "x": 400, "y": 300, "w": 200, "h": 300 }, { "x": 600, "y": 300, "w": 200, "h": 300 }, { "x": 800, "y": 300, "w": 200, "h": 300 } ] },
+    "taunt": { "frames": [ { "x": 0, "y": 600, "w": 200, "h": 300 } ] },
+    "jump":  { "frames": [ { "x": 200, "y": 600, "w": 200, "h": 300 } ] },
+    "hit":   { "frames": [ { "x": 400, "y": 600, "w": 200, "h": 300 } ] },
+    "duck":  { "frames": [ { "x": 600, "y": 600, "w": 200, "h": 300 } ] },
+    "win":   { "frames": [ { "x": 800, "y": 600, "w": 200, "h": 300 } ] }
   }
 }

@@ -3,61 +3,194 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sprite Test - Xenocs Fighter</title>
+  <title>Sprite Editor - Xenocs Fighter</title>
   <link rel="stylesheet" href="sprite-test.css" />
 </head>
 <body>
-  <h1>Sprite Test</h1>
-  <div class="controls">
-    <label>Character: <select id="char-select"></select></label>
-    <label>Action: <select id="action-select"></select></label>
-    <label>Frame: <span id="frame-label">0/0</span></label>
-    <button id="prev-btn">&lt;</button>
-    <button id="next-btn">&gt;</button>
-    <button id="play-btn">Play</button>
-    <label>Speed: <input type="range" id="speed-slider" min="1" max="20" value="8" /></label>
-    <label><input type="checkbox" id="bg-toggle" /> Checkerboard</label>
-    <label><input type="checkbox" id="hitbox-toggle" /> Hitboxes</label>
-    <button id="reload-btn">Reload</button>
-  </div>
-  <div class="preview-area">
-    <canvas id="sprite-canvas" width="320" height="480"></canvas>
-    <div class="info-panel">
-      <dl>
-        <dt>Character</dt><dd id="info-char">-</dd>
-        <dt>Action</dt><dd id="info-action">-</dd>
-        <dt>Frame</dt><dd id="info-frame">-</dd>
-        <dt>Sheet Size</dt><dd id="info-sheet">-</dd>
-        <dt>Cell Size</dt><dd id="info-cell">-</dd>
-        <dt>Speed</dt><dd id="info-speed">-</dd>
-        <dt>Jump Force</dt><dd id="info-jump">-</dd>
-      </dl>
-      <div class="hitbox-info" id="hitbox-info"></div>
+  <h1>Sprite Editor</h1>
+  <div class="editor-layout">
+    <!-- Left: Mega-sheet canvas -->
+    <div class="sheet-panel">
+      <div class="sheet-toolbar">
+        <label>Character: <select id="char-select"></select></label>
+        <label>Action: <select id="action-select"></select></label>
+        <label><input type="checkbox" id="grid-toggle" checked /> Grid</label>
+        <label>Zoom: <span id="zoom-label">1x</span></label>
+        <button id="zoom-fit-btn">Fit</button>
+        <button id="reload-btn">Reload</button>
+      </div>
+      <div class="sheet-canvas-wrap" id="sheet-wrap">
+        <canvas id="sheet-canvas"></canvas>
+        <div class="coord-readout" id="coord-readout">0, 0</div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <!-- Preview -->
+      <div class="preview-section">
+        <h3>Frame Preview</h3>
+        <canvas id="sprite-canvas" width="160" height="240"></canvas>
+        <div class="preview-controls">
+          <button id="prev-btn">&lt;</button>
+          <button id="play-btn">Play</button>
+          <button id="next-btn">&gt;</button>
+          <label>Speed: <input type="range" id="speed-slider" min="1" max="20" value="8" /></label>
+          <label><input type="checkbox" id="bg-toggle" /> Check</label>
+          <label><input type="checkbox" id="hitbox-toggle" /> Hitbox</label>
+        </div>
+      </div>
+
+      <!-- Editor controls -->
+      <div class="editor-section">
+        <h3>Sprite Sheet</h3>
+        <div class="field-row">
+          <label style="width:auto">Char:</label>
+          <input type="text" id="char-sheet-path" placeholder="e.g. assets/fighter-poses.png" style="flex:1;padding:3px 5px;border-radius:3px;border:1px solid #444;background:#0a1628;color:#eee;font-size:11px;font-family:monospace" />
+          <button id="char-sheet-load-btn" style="font-size:11px;padding:3px 6px">Load</button>
+          <label style="width:auto;cursor:pointer;font-size:11px;padding:3px 6px;border-radius:4px;border:1px solid #444;background:#0f3460;color:#eee">File<input type="file" id="char-sheet-file" accept="image/*" style="display:none" /></label>
+        </div>
+        <div class="field-row">
+          <label style="width:auto">Action:</label>
+          <input type="text" id="action-sheet-path" placeholder="(optional) per-action sheet" style="flex:1;padding:3px 5px;border-radius:3px;border:1px solid #444;background:#0a1628;color:#eee;font-size:11px;font-family:monospace" />
+          <button id="action-sheet-load-btn" style="font-size:11px;padding:3px 6px">Load</button>
+          <label style="width:auto;cursor:pointer;font-size:11px;padding:3px 6px;border-radius:4px;border:1px solid #444;background:#0f3460;color:#eee">File<input type="file" id="action-sheet-file" accept="image/*" style="display:none" /></label>
+          <button id="action-sheet-clear-btn" style="font-size:11px;padding:3px 6px;color:#e74c3c">Clear</button>
+        </div>
+        <div class="field-row" style="margin-top:4px">
+          <label style="width:auto">BG Remove:</label>
+          <label style="width:auto;font-size:11px;color:#aaa">Tolerance</label>
+          <input type="range" id="bg-tolerance" min="0" max="100" value="30" style="width:60px" />
+          <span id="bg-tolerance-label" style="font-size:11px;color:#aaa;width:24px">30</span>
+          <button id="remove-bg-btn" style="font-size:11px;padding:3px 8px;background:#7b1fa2;border-color:#9c27b0">Remove BG</button>
+          <button id="download-sheet-btn" style="font-size:11px;padding:3px 6px">Save PNG</button>
+        </div>
+
+        <h3>Frames</h3>
+        <div class="frame-list" id="frame-list"></div>
+        <div class="frame-actions">
+          <button id="add-frame-btn">+ Add</button>
+          <button id="remove-frame-btn">- Remove</button>
+          <button id="move-up-btn">Up</button>
+          <button id="move-down-btn">Down</button>
+        </div>
+
+        <h3>Selected Frame</h3>
+        <div class="field-row">
+          <label>X</label><input type="number" id="frame-x" step="1" />
+          <label>Y</label><input type="number" id="frame-y" step="1" />
+        </div>
+        <div class="field-row">
+          <label>W</label><input type="number" id="frame-w" step="1" min="1" />
+          <label>H</label><input type="number" id="frame-h" step="1" min="1" />
+        </div>
+
+        <div class="hitbox-section">
+          <h4>Attack Hitbox (game coords 160x240)</h4>
+          <div class="field-row">
+            <label><input type="checkbox" id="hitbox-enable" /> Enable</label>
+          </div>
+          <div class="field-row">
+            <label>X</label><input type="number" id="hb-x" step="1" />
+            <label>Y</label><input type="number" id="hb-y" step="1" />
+          </div>
+          <div class="field-row">
+            <label>W</label><input type="number" id="hb-w" step="1" min="1" />
+            <label>H</label><input type="number" id="hb-h" step="1" min="1" />
+          </div>
+        </div>
+
+        <div class="export-section">
+          <button id="copy-json-btn" class="primary">Copy JSON</button>
+          <button id="download-json-btn">Download JSON</button>
+          <span class="unsaved-indicator" id="unsaved-indicator" style="display:none">* unsaved changes</span>
+        </div>
+      </div>
     </div>
   </div>
+
   <script src="character-loader.js"></script>
   <script>
+    // --- State ---
     let CHARS = new Map();
+    let currentCharId = null;
     let currentChar = null;
     let currentAction = 'idle';
-    let currentFrame = 0;
+    let selectedFrameIdx = 0;
     let playing = false;
     let animTimer = 0;
     let lastTime = 0;
+    let dirty = false;
 
+    // Sheet pan/zoom
+    let zoom = 1;
+    let panX = 0, panY = 0;
+    let isPanning = false;
+    let panStartX, panStartY, panStartPanX, panStartPanY;
+
+    // Frame dragging on sheet
+    let isDraggingFrame = false;
+    let dragMode = null; // 'move', 'nw', 'ne', 'sw', 'se', 'n', 's', 'e', 'w'
+    let dragStartX, dragStartY;
+    let dragOrigRect = null;
+
+    // --- DOM refs ---
     const charSel = document.getElementById('char-select');
     const actionSel = document.getElementById('action-select');
-    const frameLabel = document.getElementById('frame-label');
+    const gridToggle = document.getElementById('grid-toggle');
+    const zoomLabel = document.getElementById('zoom-label');
+    const zoomFitBtn = document.getElementById('zoom-fit-btn');
+    const reloadBtn = document.getElementById('reload-btn');
+    const sheetWrap = document.getElementById('sheet-wrap');
+    const sheetCanvas = document.getElementById('sheet-canvas');
+    const sheetCtx = sheetCanvas.getContext('2d');
+    const coordReadout = document.getElementById('coord-readout');
+
+    const previewCanvas = document.getElementById('sprite-canvas');
+    const previewCtx = previewCanvas.getContext('2d');
     const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
     const playBtn = document.getElementById('play-btn');
+    const nextBtn = document.getElementById('next-btn');
     const speedSlider = document.getElementById('speed-slider');
     const bgToggle = document.getElementById('bg-toggle');
     const hitboxToggle = document.getElementById('hitbox-toggle');
-    const reloadBtn = document.getElementById('reload-btn');
-    const canvas = document.getElementById('sprite-canvas');
-    const ctx = canvas.getContext('2d');
 
+    const frameListEl = document.getElementById('frame-list');
+    const addFrameBtn = document.getElementById('add-frame-btn');
+    const removeFrameBtn = document.getElementById('remove-frame-btn');
+    const moveUpBtn = document.getElementById('move-up-btn');
+    const moveDownBtn = document.getElementById('move-down-btn');
+
+    const frameXIn = document.getElementById('frame-x');
+    const frameYIn = document.getElementById('frame-y');
+    const frameWIn = document.getElementById('frame-w');
+    const frameHIn = document.getElementById('frame-h');
+
+    const hitboxEnable = document.getElementById('hitbox-enable');
+    const hbXIn = document.getElementById('hb-x');
+    const hbYIn = document.getElementById('hb-y');
+    const hbWIn = document.getElementById('hb-w');
+    const hbHIn = document.getElementById('hb-h');
+
+    const charSheetPath = document.getElementById('char-sheet-path');
+    const charSheetLoadBtn = document.getElementById('char-sheet-load-btn');
+    const charSheetFile = document.getElementById('char-sheet-file');
+    const actionSheetPath = document.getElementById('action-sheet-path');
+    const actionSheetLoadBtn = document.getElementById('action-sheet-load-btn');
+    const actionSheetFile = document.getElementById('action-sheet-file');
+    const actionSheetClearBtn = document.getElementById('action-sheet-clear-btn');
+
+    const copyJsonBtn = document.getElementById('copy-json-btn');
+    const downloadJsonBtn = document.getElementById('download-json-btn');
+    const unsavedEl = document.getElementById('unsaved-indicator');
+
+    // --- FRAME_MAP for legacy auto-init ---
+    const FRAME_MAP = {
+      idle: [0, 1], block: [2], punch: [3, 4, 5], kick: [6, 7, 8, 9],
+      taunt: [10], jump: [11], hit: [12], duck: [13], win: [14],
+    };
+
+    // --- Load ---
     async function load() {
       CHARS = await CharacterLoader.loadAll();
       charSel.innerHTML = '';
@@ -67,93 +200,394 @@
         opt.textContent = data.name;
         charSel.appendChild(opt);
       }
+      if (currentCharId && CHARS.has(currentCharId)) {
+        charSel.value = currentCharId;
+      }
       selectChar(charSel.value);
     }
 
     function selectChar(id) {
+      currentCharId = id;
       currentChar = CHARS.get(id);
-      currentFrame = 0;
+      if (!currentChar) return;
+
+      // Auto-init: convert legacy cols/rows to frames if needed
+      autoInitFrames();
+
       actionSel.innerHTML = '';
-      const actions = currentChar.actions || {};
-      for (const name of Object.keys(actions)) {
+      for (const name of Object.keys(currentChar.actions)) {
         const opt = document.createElement('option');
         opt.value = name;
         opt.textContent = name;
         actionSel.appendChild(opt);
       }
-      currentAction = actionSel.value || 'idle';
-      updateInfo();
-      drawFrame();
-    }
-
-    function getFrameCount() {
-      if (!currentChar || !currentChar.actions) return 0;
-      const a = currentChar.actions[currentAction];
-      return a ? a.cols * a.rows : 0;
-    }
-
-    function drawFrame() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      if (!currentChar || !currentChar.actions) return;
-
-      const actionInfo = currentChar.actions[currentAction];
-      if (!actionInfo) return;
-      const img = currentChar.actionImages[currentAction];
-      if (!img || !img.complete) return;
-
-      const cellW = img.width / actionInfo.cols;
-      const cellH = img.height / actionInfo.rows;
-      const sx = currentFrame * cellW;
-
-      ctx.imageSmoothingEnabled = false;
-      ctx.drawImage(img, sx, 0, cellW, cellH, 0, 0, canvas.width, canvas.height);
-
-      if (hitboxToggle.checked) {
-        const stats = currentChar.stats;
-        const scaleX = canvas.width / 160;
-        const scaleY = canvas.height / 240;
-
-        // Body hitbox
-        ctx.strokeStyle = '#2ecc71';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(0, 0, canvas.width, canvas.height);
-
-        // Attack hitbox
-        if (currentAction === 'punch' || currentAction === 'kick') {
-          const range = currentAction === 'punch' ? stats.punchRange : stats.kickRange;
-          ctx.strokeStyle = '#e74c3c';
-          ctx.lineWidth = 2;
-          const hx = (160 - 8) * scaleX;
-          const hy = 20 * scaleY;
-          const hw = range * scaleX;
-          const hh = (240 - 28) * scaleY;
-          ctx.strokeRect(hx, hy, hw, hh);
-
-          document.getElementById('hitbox-info').textContent =
-            `${currentAction} range: ${range}px, damage: ${currentAction === 'punch' ? stats.punchDamage : stats.kickDamage}`;
-        } else {
-          document.getElementById('hitbox-info').textContent = '';
-        }
+      if (currentChar.actions[currentAction]) {
+        actionSel.value = currentAction;
       } else {
-        document.getElementById('hitbox-info').textContent = '';
+        currentAction = actionSel.value || 'idle';
       }
-
-      frameLabel.textContent = `${currentFrame + 1}/${getFrameCount()}`;
+      selectedFrameIdx = 0;
+      zoomFit();
+      refreshAll();
     }
 
-    function updateInfo() {
-      if (!currentChar) return;
-      document.getElementById('info-char').textContent = currentChar.name;
-      document.getElementById('info-action').textContent = currentAction;
-      document.getElementById('info-frame').textContent = `${currentFrame + 1}/${getFrameCount()}`;
-      const actionInfo = currentChar.actions?.[currentAction];
-      if (actionInfo) {
-        const img = currentChar.actionImages[currentAction];
-        document.getElementById('info-sheet').textContent = img ? `${img.width}x${img.height}` : '-';
-        document.getElementById('info-cell').textContent = img ? `${img.width / actionInfo.cols}x${img.height / actionInfo.rows}` : '-';
+    function autoInitFrames() {
+      if (!currentChar.spriteSheetImg) return;
+      const img = currentChar.spriteSheetImg;
+      const cols = 5, rows = 3;
+      const cellW = img.width / cols;
+      const cellH = img.height / rows;
+
+      for (const [action, info] of Object.entries(currentChar.actions)) {
+        if (info.frames) continue; // already new format
+        // Convert from legacy
+        const indices = FRAME_MAP[action];
+        if (!indices) continue;
+        info.frames = indices.map(idx => ({
+          x: Math.round((idx % cols) * cellW),
+          y: Math.round(Math.floor(idx / cols) * cellH),
+          w: Math.round(cellW),
+          h: Math.round(cellH),
+        }));
       }
-      document.getElementById('info-speed').textContent = currentChar.stats.speed;
-      document.getElementById('info-jump').textContent = currentChar.stats.jumpForce;
+    }
+
+    // --- Helpers ---
+    function getFrames() {
+      if (!currentChar || !currentChar.actions[currentAction]) return [];
+      return currentChar.actions[currentAction].frames || [];
+    }
+
+    function getSelectedFrame() {
+      const frames = getFrames();
+      return frames[selectedFrameIdx] || null;
+    }
+
+    function markDirty() {
+      dirty = true;
+      unsavedEl.style.display = '';
+    }
+
+    function getSpriteSheet() {
+      if (!currentChar) return null;
+      const actionInfo = currentChar.actions[currentAction];
+      // Per-action spriteSheet takes priority
+      if (actionInfo && actionInfo.spriteSheet && currentChar.actionImages[currentAction]) {
+        return currentChar.actionImages[currentAction];
+      }
+      return currentChar.spriteSheetImg || null;
+    }
+
+    // --- Sheet Canvas ---
+    function zoomFit() {
+      const img = getSpriteSheet();
+      if (!img) return;
+      const rect = sheetWrap.getBoundingClientRect();
+      zoom = Math.min(rect.width / img.width, rect.height / img.height, 2);
+      panX = 0;
+      panY = 0;
+      updateSheetCanvasSize();
+    }
+
+    function updateSheetCanvasSize() {
+      const img = getSpriteSheet();
+      if (!img) return;
+      sheetCanvas.width = Math.ceil(img.width * zoom);
+      sheetCanvas.height = Math.ceil(img.height * zoom);
+      sheetCanvas.style.left = panX + 'px';
+      sheetCanvas.style.top = panY + 'px';
+      zoomLabel.textContent = zoom.toFixed(1) + 'x';
+      drawSheet();
+    }
+
+    function drawSheet() {
+      const img = getSpriteSheet();
+      if (!img || !img.complete) return;
+      const w = sheetCanvas.width, h = sheetCanvas.height;
+      sheetCtx.clearRect(0, 0, w, h);
+      sheetCtx.imageSmoothingEnabled = false;
+      sheetCtx.drawImage(img, 0, 0, w, h);
+
+      // Grid overlay (only for character-level mega-sheet, not per-action sheets)
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      const isPerActionSheet = actionInfo && actionInfo.spriteSheet;
+      if (gridToggle.checked && !isPerActionSheet) {
+        const cols = 5, rows = 3;
+        sheetCtx.strokeStyle = 'rgba(255,255,255,0.25)';
+        sheetCtx.lineWidth = 1;
+        for (let c = 1; c < cols; c++) {
+          const x = Math.round(c * (img.width / cols) * zoom);
+          sheetCtx.beginPath();
+          sheetCtx.moveTo(x + 0.5, 0);
+          sheetCtx.lineTo(x + 0.5, h);
+          sheetCtx.stroke();
+        }
+        for (let r = 1; r < rows; r++) {
+          const y = Math.round(r * (img.height / rows) * zoom);
+          sheetCtx.beginPath();
+          sheetCtx.moveTo(0, y + 0.5);
+          sheetCtx.lineTo(w, y + 0.5);
+          sheetCtx.stroke();
+        }
+      }
+
+      // Draw all frame rects for current action
+      const frames = getFrames();
+      frames.forEach((frame, i) => {
+        const rx = frame.x * zoom;
+        const ry = frame.y * zoom;
+        const rw = frame.w * zoom;
+        const rh = frame.h * zoom;
+        const isSelected = (i === selectedFrameIdx);
+
+        sheetCtx.strokeStyle = isSelected ? '#4fc3f7' : '#ffeb3b';
+        sheetCtx.lineWidth = isSelected ? 2 : 1;
+        sheetCtx.strokeRect(rx, ry, rw, rh);
+
+        // Frame number label
+        sheetCtx.fillStyle = isSelected ? '#4fc3f7' : '#ffeb3b';
+        sheetCtx.font = 'bold 12px monospace';
+        sheetCtx.fillText(i.toString(), rx + 3, ry + 13);
+
+        // Resize handles for selected frame
+        if (isSelected) {
+          const hs = 6;
+          sheetCtx.fillStyle = '#4fc3f7';
+          // corners
+          sheetCtx.fillRect(rx - hs/2, ry - hs/2, hs, hs);
+          sheetCtx.fillRect(rx + rw - hs/2, ry - hs/2, hs, hs);
+          sheetCtx.fillRect(rx - hs/2, ry + rh - hs/2, hs, hs);
+          sheetCtx.fillRect(rx + rw - hs/2, ry + rh - hs/2, hs, hs);
+        }
+      });
+    }
+
+    // --- Sheet mouse interaction ---
+    function sheetMousePos(e) {
+      const rect = sheetWrap.getBoundingClientRect();
+      return {
+        cx: e.clientX - rect.left,
+        cy: e.clientY - rect.top,
+        // position on image
+        ix: (e.clientX - rect.left - panX) / zoom,
+        iy: (e.clientY - rect.top - panY) / zoom,
+      };
+    }
+
+    function hitTestHandles(ix, iy) {
+      const frame = getSelectedFrame();
+      if (!frame) return null;
+      const tol = 8 / zoom; // tolerance in image pixels
+      const cx = frame.x, cy = frame.y, cw = frame.w, ch = frame.h;
+      const r = cx + cw, b = cy + ch;
+
+      // Corners
+      if (Math.abs(ix - cx) < tol && Math.abs(iy - cy) < tol) return 'nw';
+      if (Math.abs(ix - r) < tol && Math.abs(iy - cy) < tol) return 'ne';
+      if (Math.abs(ix - cx) < tol && Math.abs(iy - b) < tol) return 'sw';
+      if (Math.abs(ix - r) < tol && Math.abs(iy - b) < tol) return 'se';
+
+      // Edges
+      if (ix > cx + tol && ix < r - tol && Math.abs(iy - cy) < tol) return 'n';
+      if (ix > cx + tol && ix < r - tol && Math.abs(iy - b) < tol) return 's';
+      if (Math.abs(ix - cx) < tol && iy > cy + tol && iy < b - tol) return 'w';
+      if (Math.abs(ix - r) < tol && iy > cy + tol && iy < b - tol) return 'e';
+
+      // Inside = move
+      if (ix >= cx && ix <= r && iy >= cy && iy <= b) return 'move';
+
+      return null;
+    }
+
+    function hitTestFrames(ix, iy) {
+      const frames = getFrames();
+      // Check selected first, then others
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = frames.length - 1; i >= 0; i--) {
+          if (pass === 0 && i !== selectedFrameIdx) continue;
+          if (pass === 1 && i === selectedFrameIdx) continue;
+          const f = frames[i];
+          if (ix >= f.x && ix <= f.x + f.w && iy >= f.y && iy <= f.y + f.h) return i;
+        }
+      }
+      return -1;
+    }
+
+    sheetWrap.addEventListener('mousedown', (e) => {
+      const pos = sheetMousePos(e);
+
+      // Shift+drag = pan
+      if (e.shiftKey || e.button === 1) {
+        isPanning = true;
+        panStartX = e.clientX;
+        panStartY = e.clientY;
+        panStartPanX = panX;
+        panStartPanY = panY;
+        e.preventDefault();
+        return;
+      }
+
+      // Check handle hit on selected frame
+      const handle = hitTestHandles(pos.ix, pos.iy);
+      if (handle) {
+        isDraggingFrame = true;
+        dragMode = handle;
+        dragStartX = pos.ix;
+        dragStartY = pos.iy;
+        dragOrigRect = { ...getSelectedFrame() };
+        e.preventDefault();
+        return;
+      }
+
+      // Check if clicking another frame
+      const hitIdx = hitTestFrames(pos.ix, pos.iy);
+      if (hitIdx >= 0 && hitIdx !== selectedFrameIdx) {
+        selectedFrameIdx = hitIdx;
+        refreshAll();
+        // Start dragging the newly selected frame
+        isDraggingFrame = true;
+        dragMode = 'move';
+        dragStartX = pos.ix;
+        dragStartY = pos.iy;
+        dragOrigRect = { ...getSelectedFrame() };
+        e.preventDefault();
+        return;
+      }
+
+      if (hitIdx >= 0) {
+        isDraggingFrame = true;
+        dragMode = 'move';
+        dragStartX = pos.ix;
+        dragStartY = pos.iy;
+        dragOrigRect = { ...getSelectedFrame() };
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isPanning) {
+        panX = panStartPanX + (e.clientX - panStartX);
+        panY = panStartPanY + (e.clientY - panStartY);
+        sheetCanvas.style.left = panX + 'px';
+        sheetCanvas.style.top = panY + 'px';
+        return;
+      }
+
+      const pos = sheetMousePos(e);
+      coordReadout.textContent = `${Math.round(pos.ix)}, ${Math.round(pos.iy)}`;
+
+      if (isDraggingFrame && dragOrigRect) {
+        const dx = pos.ix - dragStartX;
+        const dy = pos.iy - dragStartY;
+        const frame = getSelectedFrame();
+        if (!frame) return;
+
+        const o = dragOrigRect;
+        switch (dragMode) {
+          case 'move':
+            frame.x = Math.round(o.x + dx);
+            frame.y = Math.round(o.y + dy);
+            break;
+          case 'nw':
+            frame.x = Math.round(o.x + dx);
+            frame.y = Math.round(o.y + dy);
+            frame.w = Math.max(1, Math.round(o.w - dx));
+            frame.h = Math.max(1, Math.round(o.h - dy));
+            break;
+          case 'ne':
+            frame.y = Math.round(o.y + dy);
+            frame.w = Math.max(1, Math.round(o.w + dx));
+            frame.h = Math.max(1, Math.round(o.h - dy));
+            break;
+          case 'sw':
+            frame.x = Math.round(o.x + dx);
+            frame.w = Math.max(1, Math.round(o.w - dx));
+            frame.h = Math.max(1, Math.round(o.h + dy));
+            break;
+          case 'se':
+            frame.w = Math.max(1, Math.round(o.w + dx));
+            frame.h = Math.max(1, Math.round(o.h + dy));
+            break;
+          case 'n':
+            frame.y = Math.round(o.y + dy);
+            frame.h = Math.max(1, Math.round(o.h - dy));
+            break;
+          case 's':
+            frame.h = Math.max(1, Math.round(o.h + dy));
+            break;
+          case 'w':
+            frame.x = Math.round(o.x + dx);
+            frame.w = Math.max(1, Math.round(o.w - dx));
+            break;
+          case 'e':
+            frame.w = Math.max(1, Math.round(o.w + dx));
+            break;
+        }
+        markDirty();
+        syncFieldsFromFrame();
+        drawSheet();
+        drawPreview();
+        updateFrameListHighlight();
+      }
+
+      // Update cursor
+      if (!isDraggingFrame) {
+        const handle = hitTestHandles(pos.ix, pos.iy);
+        if (handle === 'move') sheetWrap.style.cursor = 'move';
+        else if (handle === 'nw' || handle === 'se') sheetWrap.style.cursor = 'nwse-resize';
+        else if (handle === 'ne' || handle === 'sw') sheetWrap.style.cursor = 'nesw-resize';
+        else if (handle === 'n' || handle === 's') sheetWrap.style.cursor = 'ns-resize';
+        else if (handle === 'e' || handle === 'w') sheetWrap.style.cursor = 'ew-resize';
+        else sheetWrap.style.cursor = 'crosshair';
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      isPanning = false;
+      isDraggingFrame = false;
+      dragMode = null;
+      dragOrigRect = null;
+    });
+
+    sheetWrap.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const pos = sheetMousePos(e);
+      const oldZoom = zoom;
+      const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+      zoom = Math.max(0.1, Math.min(8, zoom * factor));
+
+      // Zoom toward cursor
+      panX = pos.cx - (pos.cx - panX) * (zoom / oldZoom);
+      panY = pos.cy - (pos.cy - panY) * (zoom / oldZoom);
+
+      updateSheetCanvasSize();
+    }, { passive: false });
+
+    // --- Preview ---
+    function drawPreview() {
+      previewCtx.clearRect(0, 0, previewCanvas.width, previewCanvas.height);
+      const img = getSpriteSheet();
+      const frame = getSelectedFrame();
+      if (!img || !img.complete || !frame) return;
+
+      previewCtx.imageSmoothingEnabled = false;
+      previewCtx.drawImage(img, frame.x, frame.y, frame.w, frame.h,
+        0, 0, previewCanvas.width, previewCanvas.height);
+
+      // Show hitbox if toggle is on OR if hitbox is enabled for this action
+      const actionInfo = currentChar.actions[currentAction];
+      const hb = actionInfo ? actionInfo.hitbox : null;
+      if (hb && (hitboxToggle.checked || hitboxEnable.checked)) {
+        const scaleX = previewCanvas.width / 160;
+        const scaleY = previewCanvas.height / 240;
+        previewCtx.strokeStyle = '#e74c3c';
+        previewCtx.lineWidth = 2;
+        previewCtx.strokeRect(hb.x * scaleX, hb.y * scaleY, hb.w * scaleX, hb.h * scaleY);
+        // Label
+        previewCtx.fillStyle = '#e74c3c';
+        previewCtx.font = '10px monospace';
+        previewCtx.fillText(`${hb.x},${hb.y} ${hb.w}x${hb.h}`, hb.x * scaleX + 2, hb.y * scaleY - 3);
+      }
     }
 
     function animate(now) {
@@ -164,31 +598,422 @@
       animTimer += dt;
       if (animTimer >= 1000 / fps) {
         animTimer = 0;
-        currentFrame = (currentFrame + 1) % getFrameCount();
-        updateInfo();
-        drawFrame();
+        const frames = getFrames();
+        if (frames.length > 0) {
+          selectedFrameIdx = (selectedFrameIdx + 1) % frames.length;
+          refreshAll();
+        }
       }
       lastTime = now;
       requestAnimationFrame(animate);
     }
 
-    charSel.addEventListener('change', () => selectChar(charSel.value));
+    // --- Frame list ---
+    function buildFrameList() {
+      frameListEl.innerHTML = '';
+      const frames = getFrames();
+      const img = getSpriteSheet();
+
+      frames.forEach((frame, i) => {
+        const item = document.createElement('div');
+        item.className = 'frame-list-item' + (i === selectedFrameIdx ? ' selected' : '');
+
+        // Thumbnail
+        const thumb = document.createElement('canvas');
+        thumb.width = 32;
+        thumb.height = 32;
+        if (img && img.complete) {
+          const tc = thumb.getContext('2d');
+          tc.imageSmoothingEnabled = false;
+          const scale = Math.min(32 / frame.w, 32 / frame.h);
+          const dw = frame.w * scale, dh = frame.h * scale;
+          tc.drawImage(img, frame.x, frame.y, frame.w, frame.h,
+            (32 - dw) / 2, (32 - dh) / 2, dw, dh);
+        }
+        item.appendChild(thumb);
+
+        const coords = document.createElement('span');
+        coords.className = 'frame-coords';
+        coords.textContent = `#${i} (${frame.x},${frame.y} ${frame.w}x${frame.h})`;
+        item.appendChild(coords);
+
+        item.addEventListener('click', () => {
+          selectedFrameIdx = i;
+          refreshAll();
+        });
+        frameListEl.appendChild(item);
+      });
+    }
+
+    function updateFrameListHighlight() {
+      const items = frameListEl.querySelectorAll('.frame-list-item');
+      items.forEach((item, i) => {
+        item.classList.toggle('selected', i === selectedFrameIdx);
+        // Update coords text
+        const frames = getFrames();
+        if (frames[i]) {
+          const f = frames[i];
+          item.querySelector('.frame-coords').textContent = `#${i} (${f.x},${f.y} ${f.w}x${f.h})`;
+        }
+      });
+    }
+
+    // --- Field sync ---
+    function syncFieldsFromFrame() {
+      const frame = getSelectedFrame();
+      if (frame) {
+        frameXIn.value = frame.x;
+        frameYIn.value = frame.y;
+        frameWIn.value = frame.w;
+        frameHIn.value = frame.h;
+      }
+      // Hitbox
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      if (actionInfo && actionInfo.hitbox) {
+        hitboxEnable.checked = true;
+        hbXIn.value = actionInfo.hitbox.x;
+        hbYIn.value = actionInfo.hitbox.y;
+        hbWIn.value = actionInfo.hitbox.w;
+        hbHIn.value = actionInfo.hitbox.h;
+        hbXIn.disabled = hbYIn.disabled = hbWIn.disabled = hbHIn.disabled = false;
+      } else {
+        hitboxEnable.checked = false;
+        hbXIn.value = hbYIn.value = hbWIn.value = hbHIn.value = '';
+        hbXIn.disabled = hbYIn.disabled = hbWIn.disabled = hbHIn.disabled = true;
+      }
+    }
+
+    function syncFrameFromFields() {
+      const frame = getSelectedFrame();
+      if (!frame) return;
+      frame.x = parseInt(frameXIn.value) || 0;
+      frame.y = parseInt(frameYIn.value) || 0;
+      frame.w = Math.max(1, parseInt(frameWIn.value) || 1);
+      frame.h = Math.max(1, parseInt(frameHIn.value) || 1);
+      markDirty();
+      drawSheet();
+      drawPreview();
+      updateFrameListHighlight();
+    }
+
+    function syncHitboxFromFields() {
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      if (!actionInfo) return;
+      if (hitboxEnable.checked) {
+        // If fields are empty (just enabled), set sensible defaults
+        if (!hbXIn.value && !hbYIn.value && !hbWIn.value && !hbHIn.value) {
+          hbXIn.value = 100;
+          hbYIn.value = 20;
+          hbWIn.value = 60;
+          hbHIn.value = 200;
+        }
+        actionInfo.hitbox = {
+          x: parseInt(hbXIn.value) || 0,
+          y: parseInt(hbYIn.value) || 0,
+          w: Math.max(1, parseInt(hbWIn.value) || 1),
+          h: Math.max(1, parseInt(hbHIn.value) || 1),
+        };
+        hbXIn.disabled = hbYIn.disabled = hbWIn.disabled = hbHIn.disabled = false;
+      } else {
+        delete actionInfo.hitbox;
+        hbXIn.value = hbYIn.value = hbWIn.value = hbHIn.value = '';
+        hbXIn.disabled = hbYIn.disabled = hbWIn.disabled = hbHIn.disabled = true;
+      }
+      markDirty();
+      drawPreview();
+    }
+
+    // --- Sprite sheet path sync ---
+    function syncSheetFields() {
+      charSheetPath.value = (currentChar && currentChar.spriteSheet) || '';
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      actionSheetPath.value = (actionInfo && actionInfo.spriteSheet) || '';
+    }
+
+    function loadImageFromUrl(url) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load: ' + url));
+        img.src = url;
+      });
+    }
+
+    function loadImageFromFile(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    // Character-level sheet: load from path
+    charSheetLoadBtn.addEventListener('click', async () => {
+      const path = charSheetPath.value.trim();
+      if (!path || !currentChar) return;
+      try {
+        currentChar.spriteSheetImg = await loadImageFromUrl(path);
+        currentChar.spriteSheet = path;
+        markDirty();
+        zoomFit();
+        refreshAll();
+      } catch (e) { alert('Could not load: ' + path); }
+    });
+
+    // Character-level sheet: load from file picker
+    charSheetFile.addEventListener('change', async () => {
+      if (!charSheetFile.files[0] || !currentChar) return;
+      const file = charSheetFile.files[0];
+      currentChar.spriteSheetImg = await loadImageFromFile(file);
+      currentChar.spriteSheet = file.name;
+      charSheetPath.value = file.name;
+      markDirty();
+      zoomFit();
+      refreshAll();
+    });
+
+    // Per-action sheet: load from path
+    actionSheetLoadBtn.addEventListener('click', async () => {
+      const path = actionSheetPath.value.trim();
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      if (!path || !actionInfo) return;
+      try {
+        const img = await loadImageFromUrl(path);
+        actionInfo.spriteSheet = path;
+        if (!currentChar.actionImages) currentChar.actionImages = {};
+        currentChar.actionImages[currentAction] = img;
+        markDirty();
+        zoomFit();
+        refreshAll();
+      } catch (e) { alert('Could not load: ' + path); }
+    });
+
+    // Per-action sheet: load from file picker
+    actionSheetFile.addEventListener('change', async () => {
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      if (!actionSheetFile.files[0] || !actionInfo) return;
+      const file = actionSheetFile.files[0];
+      const img = await loadImageFromFile(file);
+      actionInfo.spriteSheet = file.name;
+      actionSheetPath.value = file.name;
+      if (!currentChar.actionImages) currentChar.actionImages = {};
+      currentChar.actionImages[currentAction] = img;
+      markDirty();
+      zoomFit();
+      refreshAll();
+    });
+
+    // Per-action sheet: clear
+    actionSheetClearBtn.addEventListener('click', () => {
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      if (!actionInfo) return;
+      delete actionInfo.spriteSheet;
+      if (currentChar.actionImages) delete currentChar.actionImages[currentAction];
+      actionSheetPath.value = '';
+      markDirty();
+      zoomFit();
+      refreshAll();
+    });
+
+    // --- Background removal ---
+    const bgTolerance = document.getElementById('bg-tolerance');
+    const bgToleranceLabel = document.getElementById('bg-tolerance-label');
+    const removeBgBtn = document.getElementById('remove-bg-btn');
+    const downloadSheetBtn = document.getElementById('download-sheet-btn');
+
+    bgTolerance.addEventListener('input', () => {
+      bgToleranceLabel.textContent = bgTolerance.value;
+    });
+
+    function floodFillTransparent(imageData, startX, startY, tolerance) {
+      const { width, height, data } = imageData;
+      const tol2 = tolerance * tolerance * 3; // squared distance across 3 channels
+      const idx = (startY * width + startX) * 4;
+      const refR = data[idx], refG = data[idx + 1], refB = data[idx + 2];
+      if (data[idx + 3] === 0) return; // already transparent
+
+      const visited = new Uint8Array(width * height);
+      const stack = [startX, startY];
+
+      while (stack.length > 0) {
+        const y = stack.pop();
+        const x = stack.pop();
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        const pos = y * width + x;
+        if (visited[pos]) continue;
+        visited[pos] = 1;
+
+        const i = pos * 4;
+        if (data[i + 3] === 0) continue; // already transparent, but don't spread through it
+        const dr = data[i] - refR, dg = data[i + 1] - refG, db = data[i + 2] - refB;
+        if (dr * dr + dg * dg + db * db > tol2) continue;
+
+        data[i + 3] = 0; // make transparent
+
+        stack.push(x - 1, y);
+        stack.push(x + 1, y);
+        stack.push(x, y - 1);
+        stack.push(x, y + 1);
+      }
+    }
+
+    function removeBgFromImage(img, tolerance) {
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      const cx = c.getContext('2d');
+      cx.drawImage(img, 0, 0);
+      const imageData = cx.getImageData(0, 0, c.width, c.height);
+
+      // Flood-fill from all border pixels
+      for (let x = 0; x < c.width; x++) {
+        floodFillTransparent(imageData, x, 0, tolerance);
+        floodFillTransparent(imageData, x, c.height - 1, tolerance);
+      }
+      for (let y = 0; y < c.height; y++) {
+        floodFillTransparent(imageData, 0, y, tolerance);
+        floodFillTransparent(imageData, c.width - 1, y, tolerance);
+      }
+
+      cx.putImageData(imageData, 0, 0);
+
+      // Convert back to an Image
+      const newImg = new Image();
+      newImg.src = c.toDataURL('image/png');
+      return new Promise(resolve => { newImg.onload = () => resolve(newImg); });
+    }
+
+    removeBgBtn.addEventListener('click', async () => {
+      const img = getSpriteSheet();
+      if (!img) return;
+      const tol = parseInt(bgTolerance.value);
+      removeBgBtn.textContent = 'Working...';
+      removeBgBtn.disabled = true;
+
+      // Use setTimeout to let the UI update before the heavy work
+      await new Promise(r => setTimeout(r, 50));
+
+      try {
+        const newImg = await removeBgFromImage(img, tol);
+        // Replace the image in the character data
+        const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+        if (actionInfo && actionInfo.spriteSheet && currentChar.actionImages[currentAction]) {
+          currentChar.actionImages[currentAction] = newImg;
+        } else if (currentChar) {
+          currentChar.spriteSheetImg = newImg;
+        }
+        markDirty();
+        zoomFit();
+        refreshAll();
+      } finally {
+        removeBgBtn.textContent = 'Remove BG';
+        removeBgBtn.disabled = false;
+      }
+    });
+
+    downloadSheetBtn.addEventListener('click', () => {
+      const img = getSpriteSheet();
+      if (!img) return;
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      c.getContext('2d').drawImage(img, 0, 0);
+      const a = document.createElement('a');
+      a.href = c.toDataURL('image/png');
+      const name = currentChar ? currentChar.id : 'sheet';
+      const actionInfo = currentChar ? currentChar.actions[currentAction] : null;
+      const suffix = (actionInfo && actionInfo.spriteSheet) ? '-' + currentAction : '';
+      a.download = `${name}${suffix}-sheet.png`;
+      a.click();
+    });
+
+    // --- Refresh everything ---
+    function refreshAll() {
+      const frames = getFrames();
+      if (selectedFrameIdx >= frames.length) selectedFrameIdx = Math.max(0, frames.length - 1);
+      buildFrameList();
+      syncFieldsFromFrame();
+      syncSheetFields();
+      drawSheet();
+      drawPreview();
+    }
+
+    // --- Frame actions ---
+    addFrameBtn.addEventListener('click', () => {
+      const frames = getFrames();
+      const last = frames[frames.length - 1];
+      const newFrame = last ? { ...last } : { x: 0, y: 0, w: 100, h: 100 };
+      frames.push(newFrame);
+      selectedFrameIdx = frames.length - 1;
+      markDirty();
+      refreshAll();
+    });
+
+    removeFrameBtn.addEventListener('click', () => {
+      const frames = getFrames();
+      if (frames.length <= 1) return;
+      frames.splice(selectedFrameIdx, 1);
+      if (selectedFrameIdx >= frames.length) selectedFrameIdx = frames.length - 1;
+      markDirty();
+      refreshAll();
+    });
+
+    moveUpBtn.addEventListener('click', () => {
+      const frames = getFrames();
+      if (selectedFrameIdx <= 0) return;
+      [frames[selectedFrameIdx - 1], frames[selectedFrameIdx]] =
+        [frames[selectedFrameIdx], frames[selectedFrameIdx - 1]];
+      selectedFrameIdx--;
+      markDirty();
+      refreshAll();
+    });
+
+    moveDownBtn.addEventListener('click', () => {
+      const frames = getFrames();
+      if (selectedFrameIdx >= frames.length - 1) return;
+      [frames[selectedFrameIdx], frames[selectedFrameIdx + 1]] =
+        [frames[selectedFrameIdx + 1], frames[selectedFrameIdx]];
+      selectedFrameIdx++;
+      markDirty();
+      refreshAll();
+    });
+
+    // --- Field event listeners ---
+    [frameXIn, frameYIn, frameWIn, frameHIn].forEach(el =>
+      el.addEventListener('input', syncFrameFromFields));
+    hitboxEnable.addEventListener('change', syncHitboxFromFields);
+    [hbXIn, hbYIn, hbWIn, hbHIn].forEach(el =>
+      el.addEventListener('input', syncHitboxFromFields));
+
+    // --- Control event listeners ---
+    charSel.addEventListener('change', () => {
+      currentAction = 'idle';
+      selectedFrameIdx = 0;
+      selectChar(charSel.value);
+    });
     actionSel.addEventListener('change', () => {
+      const prevImg = getSpriteSheet();
       currentAction = actionSel.value;
-      currentFrame = 0;
-      updateInfo();
-      drawFrame();
+      selectedFrameIdx = 0;
+      const newImg = getSpriteSheet();
+      if (newImg !== prevImg) zoomFit();
+      refreshAll();
     });
     prevBtn.addEventListener('click', () => {
-      const count = getFrameCount();
-      currentFrame = (currentFrame - 1 + count) % count;
-      updateInfo();
-      drawFrame();
+      const frames = getFrames();
+      if (frames.length === 0) return;
+      selectedFrameIdx = (selectedFrameIdx - 1 + frames.length) % frames.length;
+      refreshAll();
     });
     nextBtn.addEventListener('click', () => {
-      currentFrame = (currentFrame + 1) % getFrameCount();
-      updateInfo();
-      drawFrame();
+      const frames = getFrames();
+      if (frames.length === 0) return;
+      selectedFrameIdx = (selectedFrameIdx + 1) % frames.length;
+      refreshAll();
     });
     playBtn.addEventListener('click', () => {
       playing = !playing;
@@ -196,11 +1021,79 @@
       if (playing) { lastTime = 0; requestAnimationFrame(animate); }
     });
     bgToggle.addEventListener('change', () => {
-      canvas.classList.toggle('checkerboard', bgToggle.checked);
+      previewCanvas.classList.toggle('checkerboard', bgToggle.checked);
     });
-    hitboxToggle.addEventListener('change', drawFrame);
+    hitboxToggle.addEventListener('change', drawPreview);
+    gridToggle.addEventListener('change', drawSheet);
+    zoomFitBtn.addEventListener('click', () => { zoomFit(); drawSheet(); });
     reloadBtn.addEventListener('click', load);
 
+    // --- Export ---
+    function buildExportJson() {
+      if (!currentChar) return null;
+      const out = {
+        id: currentChar.id,
+        name: currentChar.name,
+        description: currentChar.description,
+        portrait: currentChar.portrait,
+        spriteSheet: currentChar.spriteSheet,
+        stats: currentChar.stats,
+        taunts: currentChar.taunts,
+        actions: {},
+      };
+      for (const [action, info] of Object.entries(currentChar.actions)) {
+        const entry = {};
+        if (info.spriteSheet) entry.spriteSheet = info.spriteSheet;
+        entry.frames = info.frames || [];
+        if (info.hitbox) entry.hitbox = info.hitbox;
+        out.actions[action] = entry;
+      }
+      return out;
+    }
+
+    copyJsonBtn.addEventListener('click', async () => {
+      const json = buildExportJson();
+      if (!json) return;
+      const text = JSON.stringify(json, null, 2);
+      try {
+        await navigator.clipboard.writeText(text);
+        copyJsonBtn.textContent = 'Copied!';
+        setTimeout(() => { copyJsonBtn.textContent = 'Copy JSON'; }, 1500);
+      } catch {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copyJsonBtn.textContent = 'Copied!';
+        setTimeout(() => { copyJsonBtn.textContent = 'Copy JSON'; }, 1500);
+      }
+    });
+
+    downloadJsonBtn.addEventListener('click', () => {
+      const json = buildExportJson();
+      if (!json) return;
+      const text = JSON.stringify(json, null, 2);
+      const blob = new Blob([text], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentChar.id}-character.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // --- Keyboard shortcuts ---
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowLeft') { prevBtn.click(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { nextBtn.click(); e.preventDefault(); }
+      if (e.key === ' ') { playBtn.click(); e.preventDefault(); }
+    });
+
+    // --- Init ---
     load();
   </script>
 </body>
