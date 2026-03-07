@@ -10,14 +10,9 @@ const timerEl = document.getElementById('timer');
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
-const BUILD = 'build-2026-03-02-0745';
+const BUILD = 'build-2026-03-07-plugin';
 
-const CHARACTERS = {
-  rook: { name: 'Lasse', sprite: new Image() },
-  voss: { name: 'Al', sprite: new Image() },
-};
-CHARACTERS.rook.sprite.src = 'assets/fighter-poses.png';
-CHARACTERS.voss.sprite.src = 'assets/fighter-poses2.png';
+let CHAR_DATA = new Map();
 
 const STAGES = [
   { name: 'Demo Lab', src: 'assets/demolab.jpg' },
@@ -25,69 +20,12 @@ const STAGES = [
 ];
 const stageBgs = STAGES.map(s => { const img = new Image(); img.src = s.src; return img; });
 
-const p1Selection = { char: 'rook' };
-const p2Selection = { char: 'voss' };
+const p1Selection = { char: null };
+const p2Selection = { char: null };
 let selectedStage = 0;
-
-const COLS = 5;
-const ROWS = 3;
-
-const FRAMES = {
-  idle: [0, 1],
-  block: [2],
-  punch: [3, 4, 5],
-  kick: [6, 7, 8, 9],
-  taunt: [10],
-  jump: [11],
-  hit: [12],
-  duck: [13],
-  win: [14],
-};
 
 const P1_KEYS = { left: 'a', right: 'd', jump: 'w', block: 's', punch: 'f', kick: 'g' };
 const P2_KEYS = { left: 'ArrowLeft', right: 'ArrowRight', jump: 'ArrowUp', block: 'ArrowDown', punch: 'k', kick: 'l' };
-
-const INTRO_TAUNTS = {
-  rook: [
-    "Let's get this over with.",
-    "You picked the wrong fight.",
-    "Time to teach you a lesson.",
-    "Hope you're ready for pain.",
-  ],
-  voss: [
-    "You won't last a minute.",
-    "I'll crush you.",
-    "This ends now.",
-    "Prepare yourself.",
-  ],
-};
-
-const TAUNTS = {
-  rook: [
-    "You scared?",
-    "Come on!",
-    "Too slow!",
-    "Is that all?",
-    "Fight me already!",
-    "I could do this all day.",
-    "My grandma hits harder.",
-    "Quit stalling!",
-    "You call that fighting?",
-    "Bring it!",
-  ],
-  voss: [
-    "Pathetic.",
-    "Not worth my time.",
-    "You bore me.",
-    "This is too easy.",
-    "I expected more.",
-    "Kneel.",
-    "You're already done?",
-    "Weakness disgusts me.",
-    "Step up or step out.",
-    "I'll end this quick.",
-  ],
-};
 
 const state = {
   running: false,
@@ -99,6 +37,9 @@ const state = {
   intro: null,
 };
 
+function getChar(id) {
+  return CHAR_DATA.get(id);
+}
 
 function makePlayer(x, controls, charId) {
   return {
@@ -125,8 +66,7 @@ function makePlayer(x, controls, charId) {
   };
 }
 
-
-// Intro phases: zoomP1 (1.5s) → tauntP1 (2s) → zoomP2 (1.5s) → tauntP2 (2s) → zoomOut (1s)
+// Intro phases: zoomP1 (1s) -> tauntP1 (2s) -> zoomP2 (1s) -> tauntP2 (2s) -> zoomOut (1s)
 const INTRO_PHASES = [
   { name: 'zoomP1',  duration: 1.0 },
   { name: 'tauntP1', duration: 2.0 },
@@ -136,8 +76,10 @@ const INTRO_PHASES = [
 ];
 
 function startIntro() {
-  const p1Taunts = INTRO_TAUNTS[p1Selection.char];
-  const p2Taunts = INTRO_TAUNTS[p2Selection.char];
+  const p1Char = getChar(p1Selection.char);
+  const p2Char = getChar(p2Selection.char);
+  const p1Taunts = p1Char.taunts.intro;
+  const p2Taunts = p2Char.taunts.intro;
   state.intro = {
     phase: 0,
     elapsed: 0,
@@ -157,8 +99,8 @@ function resetMatch() {
   ];
   state.players[0].facing = 1;
   state.players[1].facing = -1;
-  document.getElementById('p1-name').textContent = 'P1 ' + CHARACTERS[p1Selection.char].name;
-  document.getElementById('p2-name').textContent = 'P2 ' + CHARACTERS[p2Selection.char].name;
+  document.getElementById('p1-name').textContent = 'P1 ' + getChar(p1Selection.char).name;
+  document.getElementById('p2-name').textContent = 'P2 ' + getChar(p2Selection.char).name;
   updateHud();
   resultEl.classList.add('hidden');
   rematchBtn.classList.add('hidden');
@@ -187,6 +129,8 @@ function intersects(a, b) {
 function processInput(p, dt) {
   if (!state.running) return;
 
+  const charData = getChar(p.charId);
+  const stats = charData.stats;
   let moving = false;
   p.isBlocking = state.keys.has(p.controls.block) && p.onGround;
 
@@ -194,7 +138,7 @@ function processInput(p, dt) {
     p.vx = 0;
     p.action = 'block';
   } else {
-    const speed = 260;
+    const speed = stats.speed;
     if (state.keys.has(p.controls.left)) {
       p.vx = -speed;
       moving = true;
@@ -206,18 +150,18 @@ function processInput(p, dt) {
     }
 
     if (state.keys.has(p.controls.jump) && p.onGround) {
-      p.vy = -540;
+      p.vy = -stats.jumpForce;
       p.onGround = false;
       p.action = 'jump';
     }
 
     if (p.canAttack && state.keys.has(p.controls.punch)) {
       p.action = 'punch';
-      p.actionTime = 0.22;
+      p.actionTime = stats.punchDuration;
       p.canAttack = false;
     } else if (p.canAttack && state.keys.has(p.controls.kick)) {
       p.action = 'kick';
-      p.actionTime = 0.30;
+      p.actionTime = stats.kickDuration;
       p.canAttack = false;
     } else if (p.onGround && p.actionTime <= 0) {
       p.action = moving ? 'idle' : 'idle';
@@ -235,7 +179,7 @@ function processInput(p, dt) {
   if (isStill) {
     p.idleTime += dt;
     if (p.idleTime >= 3 && !p.tauntMsg) {
-      const charTaunts = TAUNTS[p.charId];
+      const charTaunts = charData.taunts.idle;
       p.tauntMsg = charTaunts[Math.floor(Math.random() * charTaunts.length)];
       p.tauntTimer = 3;
     }
@@ -310,7 +254,8 @@ function handleHit(attacker, defender) {
   if (attacker.actionTime <= 0.10) return;
   if (defender.hitCooldown > 0) return;
 
-  const range = attacker.action === 'punch' ? 52 : 72;
+  const stats = getChar(attacker.charId).stats;
+  const range = attacker.action === 'punch' ? stats.punchRange : stats.kickRange;
   const hitbox = {
     x: attacker.facing === 1 ? attacker.x + attacker.w - 8 : attacker.x - range + 8,
     y: attacker.y + 20,
@@ -320,7 +265,7 @@ function handleHit(attacker, defender) {
 
   if (!intersects(hitbox, defender)) return;
 
-  let dmg = attacker.action === 'punch' ? 10 : 14;
+  let dmg = attacker.action === 'punch' ? stats.punchDamage : stats.kickDamage;
   if (defender.isBlocking) dmg = Math.ceil(dmg * 0.35);
 
   defender.hp = Math.max(0, defender.hp - dmg);
@@ -342,35 +287,44 @@ function drawBackground() {
   }
 }
 
-function frameForPlayer(p, t) {
-  if (!state.running && p.won) return FRAMES.win[0];
-  if (!p.onGround) return FRAMES.jump[0];
+function actionFrameForPlayer(p, t) {
+  const charData = getChar(p.charId);
+  const stats = charData.stats;
+
+  if (!state.running && p.won) return { action: 'win', index: 0 };
+  if (!p.onGround) return { action: 'jump', index: 0 };
 
   switch (p.action) {
-    case 'block': return FRAMES.block[0];
+    case 'block': return { action: 'block', index: 0 };
     case 'punch': {
-      const idx = Math.floor((0.22 - p.actionTime) / 0.075);
-      return FRAMES.punch[Math.max(0, Math.min(FRAMES.punch.length - 1, idx))];
+      const count = charData.actions.punch.cols;
+      const idx = Math.floor((stats.punchDuration - p.actionTime) / 0.075);
+      return { action: 'punch', index: Math.max(0, Math.min(count - 1, idx)) };
     }
     case 'kick': {
-      const idx = Math.floor((0.30 - p.actionTime) / 0.075);
-      return FRAMES.kick[Math.max(0, Math.min(FRAMES.kick.length - 1, idx))];
+      const count = charData.actions.kick.cols;
+      const idx = Math.floor((stats.kickDuration - p.actionTime) / 0.075);
+      return { action: 'kick', index: Math.max(0, Math.min(count - 1, idx)) };
     }
-    case 'hit': return FRAMES.hit[0];
-    default:
-      return FRAMES.idle[Math.floor((t / 260) % FRAMES.idle.length)];
+    case 'hit': return { action: 'hit', index: 0 };
+    default: {
+      const count = charData.actions.idle.cols;
+      return { action: 'idle', index: Math.floor((t / 260) % count) };
+    }
   }
 }
 
 function drawFighter(p, t) {
-  const src = CHARACTERS[p.charId].sprite;
-  if (!src.complete) return;
+  const charData = getChar(p.charId);
+  const af = actionFrameForPlayer(p, t);
 
-  const frame = frameForPlayer(p, t);
-  const cellW = src.width / COLS;
-  const cellH = src.height / ROWS;
-  const sx = (frame % COLS) * cellW;
-  const sy = Math.floor(frame / COLS) * cellH;
+  const actionInfo = charData.actions[af.action];
+  const src = charData.actionImages[af.action];
+  if (!src || !src.complete) return;
+  const cellW = src.width / actionInfo.cols;
+  const cellH = src.height / actionInfo.rows;
+  const sx = af.index * cellW;
+  const sy = 0;
 
   ctx.save();
   ctx.translate(p.x + p.w / 2, p.y + p.h / 2);
@@ -401,10 +355,8 @@ function drawTauntBubble(p) {
   const by = p.y - 40;
   const tailSize = 6;
 
-  // Clamp to canvas
   const cx = Math.max(4, Math.min(W - bw - 4, bx));
 
-  // Bubble
   ctx.fillStyle = '#fff';
   ctx.strokeStyle = '#333';
   ctx.lineWidth = 2;
@@ -413,7 +365,6 @@ function drawTauntBubble(p) {
   ctx.fill();
   ctx.stroke();
 
-  // Tail
   const tailX = p.x + p.w / 2;
   ctx.fillStyle = '#fff';
   ctx.beginPath();
@@ -429,11 +380,9 @@ function drawTauntBubble(p) {
   ctx.lineTo(tailX + tailSize, by + bh);
   ctx.stroke();
 
-  // Cover the tail's top edge where it meets the bubble
   ctx.fillStyle = '#fff';
   ctx.fillRect(tailX - tailSize + 1, by + bh - 1, tailSize * 2 - 2, 3);
 
-  // Text
   ctx.fillStyle = '#111';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -561,12 +510,10 @@ function render(t) {
   drawBackground();
   for (const p of state.players) drawFighter(p, t);
 
-  // Intro taunt bubble + name
   const introTaunt = getIntroTaunt();
   if (introTaunt) {
     const ip = state.players[introTaunt.player];
     drawIntroBubble(ip, introTaunt.msg);
-    // Draw character name below fighter
     ctx.save();
     ctx.font = 'bold 18px Inter, system-ui, sans-serif';
     ctx.fillStyle = '#fff';
@@ -576,20 +523,18 @@ function render(t) {
     ctx.textBaseline = 'top';
     const nameX = ip.x + ip.w / 2;
     const nameY = ip.y + ip.h + 8;
-    const name = CHARACTERS[ip.charId].name;
+    const name = getChar(ip.charId).name;
     ctx.strokeText(name, nameX, nameY);
     ctx.fillText(name, nameX, nameY);
     ctx.restore();
   }
 
-  // In-game taunt bubbles (only during match)
   if (state.running) {
     for (const p of state.players) drawTauntBubble(p);
   }
 
   ctx.restore();
 
-  // Draw "FIGHT!" text at end of intro
   if (state.intro && INTRO_PHASES[state.intro.phase].name === 'zoomOut') {
     const ft = Math.min(1, state.intro.elapsed / INTRO_PHASES[state.intro.phase].duration);
     ctx.save();
@@ -647,6 +592,52 @@ function loop(now) {
 window.addEventListener('keydown', (e) => state.keys.add(e.key));
 window.addEventListener('keyup', (e) => state.keys.delete(e.key));
 
+function buildSelectScreen() {
+  const p1Container = document.getElementById('p1-select');
+  const p2Container = document.getElementById('p2-select');
+  p1Container.innerHTML = '';
+  p2Container.innerHTML = '';
+
+  const ids = Array.from(CHAR_DATA.keys());
+
+  ids.forEach((id, i) => {
+    const char = CHAR_DATA.get(id);
+
+    // P1 card
+    const card1 = document.createElement('div');
+    card1.className = 'select-card' + (i === 0 ? ' selected' : '');
+    card1.dataset.player = '1';
+    card1.dataset.char = id;
+    card1.innerHTML = `<img src="${char.portrait}" alt="${char.name}" /><h2>${char.name}</h2><p>${char.description}</p>`;
+    p1Container.appendChild(card1);
+
+    // P2 card
+    const card2 = document.createElement('div');
+    card2.className = 'select-card' + (i === ids.length - 1 ? ' selected' : '');
+    card2.dataset.player = '2';
+    card2.dataset.char = id;
+    card2.innerHTML = `<img src="${char.portrait}" alt="${char.name}" /><h2>${char.name}</h2><p>${char.description}</p>`;
+    p2Container.appendChild(card2);
+  });
+
+  // Set default selections
+  p1Selection.char = ids[0];
+  p2Selection.char = ids[ids.length - 1];
+
+  // Attach click handlers
+  document.querySelectorAll('.select-card[data-player]').forEach(card => {
+    card.addEventListener('click', () => {
+      const player = card.dataset.player;
+      const char = card.dataset.char;
+      const col = card.closest('.select-col');
+      col.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      if (player === '1') p1Selection.char = char;
+      else p2Selection.char = char;
+    });
+  });
+}
+
 document.querySelectorAll('.stage-card').forEach(card => {
   card.addEventListener('click', () => {
     document.querySelectorAll('.stage-card').forEach(c => c.classList.remove('selected'));
@@ -655,17 +646,17 @@ document.querySelectorAll('.stage-card').forEach(card => {
   });
 });
 
-document.querySelectorAll('.select-card[data-player]').forEach(card => {
-  card.addEventListener('click', () => {
-    const player = card.dataset.player;
-    const char = card.dataset.char;
-    const col = card.closest('.select-col');
-    col.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
-    card.classList.add('selected');
-    if (player === '1') p1Selection.char = char;
-    else p2Selection.char = char;
-  });
-});
-
 startBtn.addEventListener('click', startGame);
 rematchBtn.addEventListener('click', resetMatch);
+
+async function init() {
+  try {
+    CHAR_DATA = await CharacterLoader.loadAll();
+    buildSelectScreen();
+  } catch (err) {
+    console.error('Failed to load characters:', err);
+    document.getElementById('p1-select').innerHTML = '<p style="color:red">Failed to load characters. Are you serving via HTTP?</p>';
+  }
+}
+
+init();

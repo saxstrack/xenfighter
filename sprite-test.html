@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sprite Test - Xenocs Fighter</title>
+  <link rel="stylesheet" href="sprite-test.css" />
+</head>
+<body>
+  <h1>Sprite Test</h1>
+  <div class="controls">
+    <label>Character: <select id="char-select"></select></label>
+    <label>Action: <select id="action-select"></select></label>
+    <label>Frame: <span id="frame-label">0/0</span></label>
+    <button id="prev-btn">&lt;</button>
+    <button id="next-btn">&gt;</button>
+    <button id="play-btn">Play</button>
+    <label>Speed: <input type="range" id="speed-slider" min="1" max="20" value="8" /></label>
+    <label><input type="checkbox" id="bg-toggle" /> Checkerboard</label>
+    <label><input type="checkbox" id="hitbox-toggle" /> Hitboxes</label>
+    <button id="reload-btn">Reload</button>
+  </div>
+  <div class="preview-area">
+    <canvas id="sprite-canvas" width="320" height="480"></canvas>
+    <div class="info-panel">
+      <dl>
+        <dt>Character</dt><dd id="info-char">-</dd>
+        <dt>Action</dt><dd id="info-action">-</dd>
+        <dt>Frame</dt><dd id="info-frame">-</dd>
+        <dt>Sheet Size</dt><dd id="info-sheet">-</dd>
+        <dt>Cell Size</dt><dd id="info-cell">-</dd>
+        <dt>Speed</dt><dd id="info-speed">-</dd>
+        <dt>Jump Force</dt><dd id="info-jump">-</dd>
+      </dl>
+      <div class="hitbox-info" id="hitbox-info"></div>
+    </div>
+  </div>
+  <script src="character-loader.js"></script>
+  <script>
+    let CHARS = new Map();
+    let currentChar = null;
+    let currentAction = 'idle';
+    let currentFrame = 0;
+    let playing = false;
+    let animTimer = 0;
+    let lastTime = 0;
+
+    const charSel = document.getElementById('char-select');
+    const actionSel = document.getElementById('action-select');
+    const frameLabel = document.getElementById('frame-label');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const playBtn = document.getElementById('play-btn');
+    const speedSlider = document.getElementById('speed-slider');
+    const bgToggle = document.getElementById('bg-toggle');
+    const hitboxToggle = document.getElementById('hitbox-toggle');
+    const reloadBtn = document.getElementById('reload-btn');
+    const canvas = document.getElementById('sprite-canvas');
+    const ctx = canvas.getContext('2d');
+
+    async function load() {
+      CHARS = await CharacterLoader.loadAll();
+      charSel.innerHTML = '';
+      for (const [id, data] of CHARS) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = data.name;
+        charSel.appendChild(opt);
+      }
+      selectChar(charSel.value);
+    }
+
+    function selectChar(id) {
+      currentChar = CHARS.get(id);
+      currentFrame = 0;
+      actionSel.innerHTML = '';
+      const actions = currentChar.actions || {};
+      for (const name of Object.keys(actions)) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        actionSel.appendChild(opt);
+      }
+      currentAction = actionSel.value || 'idle';
+      updateInfo();
+      drawFrame();
+    }
+
+    function getFrameCount() {
+      if (!currentChar || !currentChar.actions) return 0;
+      const a = currentChar.actions[currentAction];
+      return a ? a.cols * a.rows : 0;
+    }
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!currentChar || !currentChar.actions) return;
+
+      const actionInfo = currentChar.actions[currentAction];
+      if (!actionInfo) return;
+      const img = currentChar.actionImages[currentAction];
+      if (!img || !img.complete) return;
+
+      const cellW = img.width / actionInfo.cols;
+      const cellH = img.height / actionInfo.rows;
+      const sx = currentFrame * cellW;
+
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, sx, 0, cellW, cellH, 0, 0, canvas.width, canvas.height);
+
+      if (hitboxToggle.checked) {
+        const stats = currentChar.stats;
+        const scaleX = canvas.width / 160;
+        const scaleY = canvas.height / 240;
+
+        // Body hitbox
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(0, 0, canvas.width, canvas.height);
+
+        // Attack hitbox
+        if (currentAction === 'punch' || currentAction === 'kick') {
+          const range = currentAction === 'punch' ? stats.punchRange : stats.kickRange;
+          ctx.strokeStyle = '#e74c3c';
+          ctx.lineWidth = 2;
+          const hx = (160 - 8) * scaleX;
+          const hy = 20 * scaleY;
+          const hw = range * scaleX;
+          const hh = (240 - 28) * scaleY;
+          ctx.strokeRect(hx, hy, hw, hh);
+
+          document.getElementById('hitbox-info').textContent =
+            `${currentAction} range: ${range}px, damage: ${currentAction === 'punch' ? stats.punchDamage : stats.kickDamage}`;
+        } else {
+          document.getElementById('hitbox-info').textContent = '';
+        }
+      } else {
+        document.getElementById('hitbox-info').textContent = '';
+      }
+
+      frameLabel.textContent = `${currentFrame + 1}/${getFrameCount()}`;
+    }
+
+    function updateInfo() {
+      if (!currentChar) return;
+      document.getElementById('info-char').textContent = currentChar.name;
+      document.getElementById('info-action').textContent = currentAction;
+      document.getElementById('info-frame').textContent = `${currentFrame + 1}/${getFrameCount()}`;
+      const actionInfo = currentChar.actions?.[currentAction];
+      if (actionInfo) {
+        const img = currentChar.actionImages[currentAction];
+        document.getElementById('info-sheet').textContent = img ? `${img.width}x${img.height}` : '-';
+        document.getElementById('info-cell').textContent = img ? `${img.width / actionInfo.cols}x${img.height / actionInfo.rows}` : '-';
+      }
+      document.getElementById('info-speed').textContent = currentChar.stats.speed;
+      document.getElementById('info-jump').textContent = currentChar.stats.jumpForce;
+    }
+
+    function animate(now) {
+      if (!playing) return;
+      if (!lastTime) lastTime = now;
+      const dt = now - lastTime;
+      const fps = parseInt(speedSlider.value);
+      animTimer += dt;
+      if (animTimer >= 1000 / fps) {
+        animTimer = 0;
+        currentFrame = (currentFrame + 1) % getFrameCount();
+        updateInfo();
+        drawFrame();
+      }
+      lastTime = now;
+      requestAnimationFrame(animate);
+    }
+
+    charSel.addEventListener('change', () => selectChar(charSel.value));
+    actionSel.addEventListener('change', () => {
+      currentAction = actionSel.value;
+      currentFrame = 0;
+      updateInfo();
+      drawFrame();
+    });
+    prevBtn.addEventListener('click', () => {
+      const count = getFrameCount();
+      currentFrame = (currentFrame - 1 + count) % count;
+      updateInfo();
+      drawFrame();
+    });
+    nextBtn.addEventListener('click', () => {
+      currentFrame = (currentFrame + 1) % getFrameCount();
+      updateInfo();
+      drawFrame();
+    });
+    playBtn.addEventListener('click', () => {
+      playing = !playing;
+      playBtn.textContent = playing ? 'Pause' : 'Play';
+      if (playing) { lastTime = 0; requestAnimationFrame(animate); }
+    });
+    bgToggle.addEventListener('change', () => {
+      canvas.classList.toggle('checkerboard', bgToggle.checked);
+    });
+    hitboxToggle.addEventListener('change', drawFrame);
+    reloadBtn.addEventListener('click', load);
+
+    load();
+  </script>
+</body>
+</html>

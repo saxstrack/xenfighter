@@ -1,0 +1,83 @@
+{
+  "id": "lasse",
+  "name": "Lasse",
+  "description": "Balanced brawler. Good range, quick startup.",
+  "portrait": "characters/lasse/select.png",
+  "stats": {
+    "speed": 260,
+    "jumpForce": 540,
+    "punchDamage": 10,
+    "punchRange": 52,
+    "punchDuration": 0.22,
+    "kickDamage": 14,
+    "kickRange": 72,
+    "kickDuration": 0.3
+  },
+  "taunts": {
+    "idle": [
+      "You scared?",
+      "Come on!",
+      "Too slow!",
+      "Is that all?",
+      "Fight me already!",
+      "I could do this all day.",
+      "My grandma hits harder.",
+      "Quit stalling!",
+      "You call that fighting?",
+      "Bring it!"
+    ],
+    "intro": [
+      "Let's get this over with.",
+      "You picked the wrong fight.",
+      "Time to teach you a lesson.",
+      "Hope you're ready for pain."
+    ]
+  },
+  "actions": {
+    "idle": {
+      "sheet": "characters/lasse/sprites/idle.png",
+      "cols": 2,
+      "rows": 1
+    },
+    "block": {
+      "sheet": "characters/lasse/sprites/block.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "punch": {
+      "sheet": "characters/lasse/sprites/punch.png",
+      "cols": 3,
+      "rows": 1
+    },
+    "kick": {
+      "sheet": "characters/lasse/sprites/kick.png",
+      "cols": 4,
+      "rows": 1
+    },
+    "taunt": {
+      "sheet": "characters/lasse/sprites/taunt.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "jump": {
+      "sheet": "characters/lasse/sprites/jump.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "hit": {
+      "sheet": "characters/lasse/sprites/hit.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "duck": {
+      "sheet": "characters/lasse/sprites/duck.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "win": {
+      "sheet": "characters/lasse/sprites/win.png",
+      "cols": 1,
+      "rows": 1
+    }
+  }
+}

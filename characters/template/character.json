@@ -1,0 +1,38 @@
+{
+  "id": "CHANGE_ME",
+  "name": "Character Name",
+  "description": "Short description for select screen.",
+  "portrait": "characters/CHANGE_ME/select.png",
+  "stats": {
+    "speed": 260,
+    "jumpForce": 540,
+    "punchDamage": 10,
+    "punchRange": 52,
+    "punchDuration": 0.22,
+    "kickDamage": 14,
+    "kickRange": 72,
+    "kickDuration": 0.30
+  },
+  "taunts": {
+    "idle": [
+      "Taunt 1",
+      "Taunt 2",
+      "Taunt 3"
+    ],
+    "intro": [
+      "Intro line 1",
+      "Intro line 2"
+    ]
+  },
+  "actions": {
+    "idle":  { "sheet": "characters/CHANGE_ME/sprites/idle.png",  "cols": 2, "rows": 1 },
+    "block": { "sheet": "characters/CHANGE_ME/sprites/block.png", "cols": 1, "rows": 1 },
+    "punch": { "sheet": "characters/CHANGE_ME/sprites/punch.png", "cols": 3, "rows": 1 },
+    "kick":  { "sheet": "characters/CHANGE_ME/sprites/kick.png",  "cols": 4, "rows": 1 },
+    "taunt": { "sheet": "characters/CHANGE_ME/sprites/taunt.png", "cols": 1, "rows": 1 },
+    "jump":  { "sheet": "characters/CHANGE_ME/sprites/jump.png",  "cols": 1, "rows": 1 },
+    "hit":   { "sheet": "characters/CHANGE_ME/sprites/hit.png",   "cols": 1, "rows": 1 },
+    "duck":  { "sheet": "characters/CHANGE_ME/sprites/duck.png",  "cols": 1, "rows": 1 },
+    "win":   { "sheet": "characters/CHANGE_ME/sprites/win.png",   "cols": 1, "rows": 1 }
+  }
+}

@@ -1,0 +1,83 @@
+{
+  "id": "al",
+  "name": "Al",
+  "description": "Heavy hitter. Slow but devastating power.",
+  "portrait": "characters/al/select.png",
+  "stats": {
+    "speed": 220,
+    "jumpForce": 500,
+    "punchDamage": 13,
+    "punchRange": 52,
+    "punchDuration": 0.26,
+    "kickDamage": 18,
+    "kickRange": 72,
+    "kickDuration": 0.35
+  },
+  "taunts": {
+    "idle": [
+      "Pathetic.",
+      "Not worth my time.",
+      "You bore me.",
+      "This is too easy.",
+      "I expected more.",
+      "Kneel.",
+      "You're already done?",
+      "Weakness disgusts me.",
+      "Step up or step out.",
+      "I'll end this quick."
+    ],
+    "intro": [
+      "You won't last a minute.",
+      "I'll crush you.",
+      "This ends now.",
+      "Prepare yourself."
+    ]
+  },
+  "actions": {
+    "idle": {
+      "sheet": "characters/al/sprites/idle.png",
+      "cols": 2,
+      "rows": 1
+    },
+    "block": {
+      "sheet": "characters/al/sprites/block.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "punch": {
+      "sheet": "characters/al/sprites/punch.png",
+      "cols": 3,
+      "rows": 1
+    },
+    "kick": {
+      "sheet": "characters/al/sprites/kick.png",
+      "cols": 4,
+      "rows": 1
+    },
+    "taunt": {
+      "sheet": "characters/al/sprites/taunt.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "jump": {
+      "sheet": "characters/al/sprites/jump.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "hit": {
+      "sheet": "characters/al/sprites/hit.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "duck": {
+      "sheet": "characters/al/sprites/duck.png",
+      "cols": 1,
+      "rows": 1
+    },
+    "win": {
+      "sheet": "characters/al/sprites/win.png",
+      "cols": 1,
+      "rows": 1
+    }
+  }
+}

@@ -13,29 +13,11 @@
       <div class="select-row">
         <div class="select-col">
           <h3>Player 1</h3>
-          <div class="select-card selected" data-player="1" data-char="rook">
-            <img src="assets/fighter-select.png" alt="Rook" />
-            <h2>Lasse</h2>
-            <p>Balanced brawler. Good range, quick startup.</p>
-          </div>
-          <div class="select-card" data-player="1" data-char="voss">
-            <img src="assets/fighter2-select.png" alt="Voss" />
-            <h2>Al</h2>
-            <p>Heavy hitter. Slow but devastating power.</p>
-          </div>
+          <div id="p1-select"></div>
         </div>
         <div class="select-col">
           <h3>Player 2</h3>
-          <div class="select-card" data-player="2" data-char="rook">
-            <img src="assets/fighter-select.png" alt="Rook" />
-            <h2>Lasse</h2>
-            <p>Balanced brawler. Good range, quick startup.</p>
-          </div>
-          <div class="select-card selected" data-player="2" data-char="voss">
-            <img src="assets/fighter2-select.png" alt="Voss" />
-            <h2>Al</h2>
-            <p>Heavy hitter. Slow but devastating power.</p>
-          </div>
+          <div id="p2-select"></div>
         </div>
       </div>
       <h3>Select Stage</h3>
@@ -70,6 +52,7 @@
       <button id="rematch-btn" class="hidden">Rematch</button>
     </section>
   </div>
+  <script src="character-loader.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
