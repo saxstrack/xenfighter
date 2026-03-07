@@ -7,11 +7,12 @@ body {
   display: flex;
   justify-content: center;
 }
+body.white-bg { background: #fff; }
 #app { width: 100%; max-width: 1000px; padding: 20px; }
 .screen { display: none; }
 .screen.active { display: block; }
 
-#character-select { text-align: center; background: #fff; color: #111; }
+#character-select, #stage-select { text-align: center; background: #fff; color: #111; padding-bottom: 20px; }
 .title-logo {
   max-width: 400px;
   width: 100%;
@@ -82,6 +83,9 @@ button {
   border-radius: 6px;
 }
 .stage-card span { display: block; margin-top: 4px; font-size: 13px; }
+.stage-buttons { display: flex; gap: 12px; justify-content: center; margin-bottom: 12px; }
+button.secondary { background: #757575; }
+button.secondary:hover { background: #616161; }
 .hint { opacity: 0.85; font-size: 14px; }
 
 .hud {

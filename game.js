@@ -1,5 +1,8 @@
 const selectScreen = document.getElementById('character-select');
+const stageScreen = document.getElementById('stage-select');
 const fightScreen = document.getElementById('fight-screen');
+const nextBtn = document.getElementById('next-btn');
+const backBtn = document.getElementById('back-btn');
 const startBtn = document.getElementById('start-btn');
 const rematchBtn = document.getElementById('rematch-btn');
 const resultEl = document.getElementById('result');
@@ -108,9 +111,21 @@ function resetMatch() {
   requestAnimationFrame(loop);
 }
 
-function startGame() {
+function goToStageSelect() {
   selectScreen.classList.remove('active');
+  stageScreen.classList.add('active');
+}
+
+function goToCharSelect() {
+  stageScreen.classList.remove('active');
+  selectScreen.classList.add('active');
+  document.body.classList.add('white-bg');
+}
+
+function startGame() {
+  stageScreen.classList.remove('active');
   fightScreen.classList.add('active');
+  document.body.classList.remove('white-bg');
   resetMatch();
 }
 
@@ -677,10 +692,13 @@ document.querySelectorAll('.stage-card').forEach(card => {
   });
 });
 
+nextBtn.addEventListener('click', goToStageSelect);
+backBtn.addEventListener('click', goToCharSelect);
 startBtn.addEventListener('click', startGame);
 rematchBtn.addEventListener('click', resetMatch);
 
 async function init() {
+  document.body.classList.add('white-bg');
   try {
     CHAR_DATA = await CharacterLoader.loadAll();
     buildSelectScreen();
