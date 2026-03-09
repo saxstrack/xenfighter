@@ -13,10 +13,15 @@ body.white-bg { background: #fff; }
 .screen.active { display: block; }
 
 #character-select, #stage-select { text-align: center; background: #fff; color: #111; padding-bottom: 20px; }
+#character-select {
+  background: linear-gradient(to bottom, #fff 0%, #fff 30%, transparent 40%),
+              url('assets/titlebg.png') center bottom / 100% auto no-repeat;
+  background-color: #fff;
+}
 .title-logo {
-  max-width: 400px;
+  max-width: 600px;
   width: 100%;
-  margin: 0 auto 12px;
+  margin: 0 auto 48px;
   display: block;
 }
 .select-row {
@@ -28,7 +33,7 @@ body.white-bg { background: #fff; }
   flex: 1;
   max-width: 300px;
 }
-.select-col h3 { margin-bottom: 8px; }
+.select-col h3 { margin: 0 0 8px; }
 .select-card {
   margin: 8px 0;
   background: #f0f0f0;
@@ -65,7 +70,7 @@ button {
   margin-bottom: 16px;
 }
 .stage-card {
-  width: 200px;
+  width: 400px;
   background: #f0f0f0;
   border: 2px solid #ccc;
   border-radius: 10px;
@@ -78,7 +83,7 @@ button {
 .stage-card.selected { border-color: #e53935; }
 .stage-card img {
   width: 100%;
-  height: 90px;
+  height: 180px;
   object-fit: cover;
   border-radius: 6px;
 }
