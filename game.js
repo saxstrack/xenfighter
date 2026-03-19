@@ -167,6 +167,7 @@ function goToStageSelect() {
 function goToCharSelect() {
   stageScreen.classList.remove('active');
   selectScreen.classList.add('active');
+  document.getElementById('title-logo-shared').style.display = '';
   document.body.classList.add('white-bg');
   playTitleMusic();
 }
@@ -174,6 +175,7 @@ function goToCharSelect() {
 function startGame() {
   stageScreen.classList.remove('active');
   fightScreen.classList.add('active');
+  document.getElementById('title-logo-shared').style.display = 'none';
   document.body.classList.remove('white-bg');
   stopTitleMusic();
   resetMatch();
