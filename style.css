@@ -11,6 +11,7 @@ body.white-bg {
   background: url('assets/titlebg.png') center / cover no-repeat fixed;
 }
 #app { width: 100%; max-width: 1000px; padding: 0 20px 20px; }
+#fight-screen { margin-top: 40px; }
 .screen { display: none; }
 .screen.active { display: block; }
 
@@ -33,7 +34,8 @@ body.white-bg {
   flex: 1;
   max-width: 360px;
 }
-.select-col h3 {
+.select-col h3,
+#stage-select h3 {
   margin: 0 0 12px;
   font-size: 22px;
   font-weight: 900;
@@ -51,9 +53,9 @@ body.white-bg {
   overflow: hidden;
 }
 .carousel-arrow {
-  background: rgba(0, 0, 0, 0.15);
-  border: 2px solid #ccc;
-  color: #333;
+  background: rgba(15, 15, 25, 0.8);
+  border: 2px solid rgba(229, 57, 53, 0.4);
+  color: #ddd;
   font-size: 24px;
   width: 40px;
   height: 40px;
@@ -63,38 +65,73 @@ body.white-bg {
   align-items: center;
   justify-content: center;
   padding: 0;
-  transition: background 0.15s, border-color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
   flex-shrink: 0;
 }
-.carousel-arrow:hover { background: rgba(0, 0, 0, 0.25); border-color: #888; }
+.carousel-arrow:hover { background: rgba(229, 57, 53, 0.25); border-color: rgba(229, 57, 53, 0.8); color: #fff; }
 .carousel-display {
   flex: 1;
   position: relative;
   min-height: 220px;
   text-align: center;
 }
+@keyframes card-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 6px rgba(229, 57, 53, 0.6),
+      0 0 14px rgba(229, 57, 53, 0.3),
+      0 0 30px rgba(255, 100, 50, 0.15),
+      0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 10px rgba(229, 57, 53, 0.9),
+      0 0 24px rgba(229, 57, 53, 0.5),
+      0 0 48px rgba(255, 100, 50, 0.25),
+      0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+}
 .carousel-card {
   position: absolute;
   inset: 0;
-  background: #f0f0f0;
-  border: 3px solid #e53935;
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 8px,
+      rgba(255, 255, 255, 0.03) 8px,
+      rgba(255, 255, 255, 0.03) 16px
+    ),
+    rgba(60, 60, 75, 0.88);
+  border: 2px solid rgba(229, 57, 53, 0.8);
   border-radius: 12px;
   padding: 32px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  overflow: hidden;
+  animation: card-glow 2s ease-in-out infinite;
 }
 .carousel-card img {
   width: 100%;
   max-width: 150px;
   height: 130px;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 4px;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
-.carousel-card h2 { margin: 8px 0 4px; font-size: 18px; color: #111; }
-.carousel-card p { margin: 0; font-size: 13px; opacity: 0.7; color: #333; }
+.carousel-card h2 {
+  margin: 8px 0 4px;
+  font-size: 18px;
+  color: #fff;
+  font-weight: 900;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 0 0 8px rgba(229, 57, 53, 0.6), 0 2px 4px rgba(0, 0, 0, 0.7);
+}
+.carousel-card p { margin: 0; font-size: 13px; opacity: 0.7; color: #aaa; }
 button {
   border: none;
   background: #e53935;
@@ -160,6 +197,26 @@ canvas {
   border: 2px solid #424242;
   background: linear-gradient(180deg, #263238 0%, #121212 100%);
 }
+.music-btn {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 100;
+  background: rgba(15, 15, 25, 0.7);
+  border: 2px solid rgba(229, 57, 53, 0.4);
+  color: #ddd;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.music-btn:hover { background: rgba(229, 57, 53, 0.25); border-color: rgba(229, 57, 53, 0.8); color: #fff; }
+
 .result {
   margin-top: 12px;
   font-size: 24px;

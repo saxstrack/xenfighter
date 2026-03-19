@@ -1,3 +1,50 @@
+// --- Title Music ---
+const titleMusic = new Audio('assets/titlemusic.mp3');
+titleMusic.loop = true;
+titleMusic.volume = 0.5;
+let musicEnabled = true;
+
+const musicToggle = document.getElementById('music-toggle');
+const musicIconOn = document.getElementById('music-icon-on');
+const musicIconOff = document.getElementById('music-icon-off');
+
+function updateMusicIcon() {
+  musicIconOn.style.display = musicEnabled ? '' : 'none';
+  musicIconOff.style.display = musicEnabled ? 'none' : '';
+}
+
+function playTitleMusic() {
+  if (musicEnabled && titleMusic.paused) {
+    titleMusic.play().catch(() => {});
+  }
+}
+
+function stopTitleMusic() {
+  titleMusic.pause();
+  titleMusic.currentTime = 0;
+}
+
+musicToggle.addEventListener('click', () => {
+  musicEnabled = !musicEnabled;
+  updateMusicIcon();
+  if (musicEnabled) {
+    // Only auto-play if we're on a menu screen
+    if (fightScreen.classList.contains('active')) return;
+    titleMusic.play().catch(() => {});
+  } else {
+    titleMusic.pause();
+  }
+});
+
+// Start music on first user interaction (browser autoplay policy)
+function ensureMusicStarted() {
+  if (musicEnabled && titleMusic.paused && !fightScreen.classList.contains('active')) {
+    titleMusic.play().catch(() => {});
+  }
+}
+document.addEventListener('click', ensureMusicStarted, { once: true });
+document.addEventListener('keydown', ensureMusicStarted, { once: true });
+
 const selectScreen = document.getElementById('character-select');
 const stageScreen = document.getElementById('stage-select');
 const fightScreen = document.getElementById('fight-screen');
@@ -121,12 +168,14 @@ function goToCharSelect() {
   stageScreen.classList.remove('active');
   selectScreen.classList.add('active');
   document.body.classList.add('white-bg');
+  playTitleMusic();
 }
 
 function startGame() {
   stageScreen.classList.remove('active');
   fightScreen.classList.add('active');
   document.body.classList.remove('white-bg');
+  stopTitleMusic();
   resetMatch();
 }
 
@@ -301,15 +350,16 @@ function handleHit(attacker, defender) {
   if (!intersects(hitbox, defender)) return;
 
   let dmg = attacker.action === 'punch' ? stats.punchDamage : stats.kickDamage;
-  if (defender.isBlocking) dmg = Math.ceil(dmg * 0.35);
+  if (defender.isBlocking) {
+    defender.hitCooldown = 0.28;
+    return;
+  }
 
   defender.hp = Math.max(0, defender.hp - dmg);
   defender.hitCooldown = 0.28;
-  if (!defender.isBlocking) {
-    defender.action = 'hit';
-    defender.actionTime = 0.18;
-    defender.vx += attacker.facing * 120;
-  }
+  defender.action = 'hit';
+  defender.actionTime = 0.18;
+  defender.vx += attacker.facing * 120;
 }
 
 function drawBackground() {
@@ -736,6 +786,7 @@ rematchBtn.addEventListener('click', resetMatch);
 
 async function init() {
   document.body.classList.add('white-bg');
+  playTitleMusic();
   try {
     CHAR_DATA = await CharacterLoader.loadAll();
     buildSelectScreen();
