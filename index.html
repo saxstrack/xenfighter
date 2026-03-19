@@ -9,22 +9,30 @@
 <body>
   <div id="app">
     <section id="character-select" class="screen active">
-      <img src="assets/xenocs_fighter_title.png" alt="Xenocs Fighter" class="title-logo" />
+      <img src="assets/titletransparent.png" alt="Xenocs Fighter" class="title-logo" />
       <div class="select-row">
         <div class="select-col">
           <h3>Player 1</h3>
-          <div id="p1-select"></div>
+          <div class="carousel" id="p1-carousel">
+            <button class="carousel-arrow left" data-dir="-1">&#9664;</button>
+            <div class="carousel-display" id="p1-select"></div>
+            <button class="carousel-arrow right" data-dir="1">&#9654;</button>
+          </div>
         </div>
         <div class="select-col">
           <h3>Player 2</h3>
-          <div id="p2-select"></div>
+          <div class="carousel" id="p2-carousel">
+            <button class="carousel-arrow left" data-dir="-1">&#9664;</button>
+            <div class="carousel-display" id="p2-select"></div>
+            <button class="carousel-arrow right" data-dir="1">&#9654;</button>
+          </div>
         </div>
       </div>
       <button id="next-btn">Next</button>
     </section>
 
     <section id="stage-select" class="screen">
-      <img src="assets/xenocs_fighter_title.png" alt="Xenocs Fighter" class="title-logo" />
+      <img src="assets/titletransparent.png" alt="Xenocs Fighter" class="title-logo" />
       <h3>Select Stage</h3>
       <div class="stage-row">
         <div class="stage-card selected" data-stage="0">
@@ -60,7 +68,7 @@
       <button id="rematch-btn" class="hidden">Rematch</button>
     </section>
   </div>
-  <script src="character-loader.js"></script>
-  <script src="game.js"></script>
+  <script src="character-loader.js?v=2"></script>
+  <script src="game.js?v=2"></script>
 </body>
 </html>

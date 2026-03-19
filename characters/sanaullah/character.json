@@ -1,0 +1,91 @@
+{
+  "id": "sanaullah",
+  "name": "Sanaullah",
+  "description": "The mad scientist. Precise strikes with explosive power.",
+  "portrait": "characters/sanaullah/select.png",
+  "selectScale": 1.15,
+  "spriteSheet": "assets/sanaullah-sprite.png",
+  "stats": {
+    "speed": 240,
+    "jumpForce": 520,
+    "punchDamage": 12,
+    "punchRange": 56,
+    "punchDuration": 0.24,
+    "kickDamage": 16,
+    "kickRange": 68,
+    "kickDuration": 0.32
+  },
+  "taunts": {
+    "idle": [
+      "Fascinating specimen.",
+      "Hold still, this won't hurt... much.",
+      "Your technique is flawed.",
+      "I've calculated your defeat.",
+      "Science always wins.",
+      "You're just a lab rat.",
+      "Disappointing results.",
+      "Let me take notes on your failure.",
+      "Hypothesis: you lose.",
+      "Peer review says you're done."
+    ],
+    "intro": [
+      "Time for an experiment.",
+      "Let's test your limits.",
+      "The results will be conclusive.",
+      "You won't survive peer review."
+    ]
+  },
+  "actions": {
+    "idle": {
+      "frames": [
+        { "x": 0, "y": 0, "w": 205, "h": 341 },
+        { "x": 205, "y": 0, "w": 205, "h": 341 }
+      ]
+    },
+    "block": {
+      "frames": [
+        { "x": 410, "y": 0, "w": 205, "h": 341 }
+      ]
+    },
+    "punch": {
+      "frames": [
+        { "x": 614, "y": 0, "w": 205, "h": 341 },
+        { "x": 819, "y": 0, "w": 205, "h": 341 },
+        { "x": 0, "y": 341, "w": 205, "h": 341 }
+      ]
+    },
+    "kick": {
+      "frames": [
+        { "x": 205, "y": 341, "w": 205, "h": 341 },
+        { "x": 410, "y": 341, "w": 205, "h": 341 },
+        { "x": 614, "y": 341, "w": 205, "h": 341 },
+        { "x": 819, "y": 341, "w": 205, "h": 341 }
+      ]
+    },
+    "taunt": {
+      "frames": [
+        { "x": 0, "y": 683, "w": 205, "h": 341 }
+      ]
+    },
+    "jump": {
+      "frames": [
+        { "x": 205, "y": 683, "w": 205, "h": 341 }
+      ]
+    },
+    "hit": {
+      "frames": [
+        { "x": 410, "y": 683, "w": 205, "h": 341 }
+      ]
+    },
+    "duck": {
+      "frames": [
+        { "x": 614, "y": 683, "w": 205, "h": 341 }
+      ]
+    },
+    "win": {
+      "frames": [
+        { "x": 819, "y": 683, "w": 205, "h": 341 }
+      ]
+    }
+  }
+}

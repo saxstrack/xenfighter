@@ -60,6 +60,7 @@ function makePlayer(x, controls, charId) {
     action: 'idle',
     actionTime: 0,
     canAttack: true,
+    attackCooldown: 0,
     hitCooldown: 0,
     isBlocking: false,
     won: false,
@@ -170,14 +171,16 @@ function processInput(p, dt) {
       p.action = 'jump';
     }
 
-    if (p.canAttack && state.keys.has(p.controls.punch)) {
+    if (p.canAttack && p.attackCooldown <= 0 && state.keys.has(p.controls.punch)) {
       p.action = 'punch';
       p.actionTime = stats.punchDuration;
       p.canAttack = false;
-    } else if (p.canAttack && state.keys.has(p.controls.kick)) {
+      p.attackCooldown = stats.punchDuration + 0.55;
+    } else if (p.canAttack && p.attackCooldown <= 0 && state.keys.has(p.controls.kick)) {
       p.action = 'kick';
       p.actionTime = stats.kickDuration;
       p.canAttack = false;
+      p.attackCooldown = stats.kickDuration + 0.65;
     } else if (p.onGround && p.actionTime <= 0) {
       p.action = moving ? 'idle' : 'idle';
     }
@@ -188,6 +191,7 @@ function processInput(p, dt) {
   }
 
   p.actionTime = Math.max(0, p.actionTime - dt);
+  p.attackCooldown = Math.max(0, p.attackCooldown - dt);
   p.hitCooldown = Math.max(0, p.hitCooldown - dt);
 
   const isStill = p.action === 'idle' && p.vx === 0 && p.onGround;
@@ -639,49 +643,82 @@ window.addEventListener('keydown', (e) => state.keys.add(e.key));
 window.addEventListener('keyup', (e) => state.keys.delete(e.key));
 
 function buildSelectScreen() {
-  const p1Container = document.getElementById('p1-select');
-  const p2Container = document.getElementById('p2-select');
-  p1Container.innerHTML = '';
-  p2Container.innerHTML = '';
-
   const ids = Array.from(CHAR_DATA.keys());
+  const carouselState = { p1: 0, p2: Math.min(ids.length - 1, 1) };
 
-  ids.forEach((id, i) => {
+  function charHTML(id) {
     const char = CHAR_DATA.get(id);
+    const scale = char.selectScale || 1;
+    const imgStyle = scale !== 1 ? ` style="transform:scale(${scale})"` : '';
+    return `<img src="${char.portrait}" alt="${char.name}"${imgStyle} /><h2>${char.name}</h2><p>${char.description}</p>`;
+  }
 
-    // P1 card
-    const card1 = document.createElement('div');
-    card1.className = 'select-card' + (i === 0 ? ' selected' : '');
-    card1.dataset.player = '1';
-    card1.dataset.char = id;
-    card1.innerHTML = `<img src="${char.portrait}" alt="${char.name}" /><h2>${char.name}</h2><p>${char.description}</p>`;
-    p1Container.appendChild(card1);
+  function renderCarousel(player) {
+    const id = ids[carouselState[player]];
+    const container = document.getElementById(player === 'p1' ? 'p1-select' : 'p2-select');
+    container.innerHTML = '';
+    const card = document.createElement('div');
+    card.className = 'carousel-card';
+    card.innerHTML = charHTML(id);
+    container.appendChild(card);
+    if (player === 'p1') p1Selection.char = id;
+    else p2Selection.char = id;
+  }
 
-    // P2 card
-    const card2 = document.createElement('div');
-    card2.className = 'select-card' + (i === ids.length - 1 ? ' selected' : '');
-    card2.dataset.player = '2';
-    card2.dataset.char = id;
-    card2.innerHTML = `<img src="${char.portrait}" alt="${char.name}" /><h2>${char.name}</h2><p>${char.description}</p>`;
-    p2Container.appendChild(card2);
-  });
+  const animating = { p1: false, p2: false };
 
-  // Set default selections
-  p1Selection.char = ids[0];
-  p2Selection.char = ids[ids.length - 1];
+  function navigate(player, dir) {
+    if (animating[player]) return;
+    animating[player] = true;
 
-  // Attach click handlers
-  document.querySelectorAll('.select-card[data-player]').forEach(card => {
-    card.addEventListener('click', () => {
-      const player = card.dataset.player;
-      const char = card.dataset.char;
-      const col = card.closest('.select-col');
-      col.querySelectorAll('.select-card').forEach(c => c.classList.remove('selected'));
-      card.classList.add('selected');
-      if (player === '1') p1Selection.char = char;
-      else p2Selection.char = char;
+    const container = document.getElementById(player === 'p1' ? 'p1-select' : 'p2-select');
+    const oldCard = container.querySelector('.carousel-card');
+
+    // Create new card behind
+    const nextIdx = (carouselState[player] + dir + ids.length) % ids.length;
+    const newCard = document.createElement('div');
+    newCard.className = 'carousel-card';
+    newCard.innerHTML = charHTML(ids[nextIdx]);
+    newCard.style.zIndex = '0';
+    container.appendChild(newCard);
+
+    // Animate old card sliding off on top
+    oldCard.style.zIndex = '1';
+    const slideX = dir > 0 ? '110%' : '-110%';
+    oldCard.style.transition = 'transform 0.3s ease-in, opacity 0.25s ease-in';
+    oldCard.style.transform = `translateX(${slideX}) rotate(${dir * 6}deg) scale(0.95)`;
+    oldCard.style.opacity = '0.4';
+
+    // New card subtle scale-up from behind
+    newCard.style.transform = 'scale(0.92)';
+    newCard.style.transition = 'transform 0.3s ease-out';
+    requestAnimationFrame(() => {
+      newCard.style.transform = 'scale(1)';
     });
+
+    setTimeout(() => {
+      carouselState[player] = nextIdx;
+      if (player === 'p1') p1Selection.char = ids[nextIdx];
+      else p2Selection.char = ids[nextIdx];
+      oldCard.remove();
+      newCard.style.zIndex = '';
+      newCard.style.transition = '';
+      newCard.style.transform = '';
+      animating[player] = false;
+    }, 300);
+  }
+
+  // Attach arrow handlers
+  document.querySelectorAll('#p1-carousel .carousel-arrow').forEach(btn => {
+    btn.addEventListener('click', () => navigate('p1', parseInt(btn.dataset.dir)));
   });
+  document.querySelectorAll('#p2-carousel .carousel-arrow').forEach(btn => {
+    btn.addEventListener('click', () => navigate('p2', parseInt(btn.dataset.dir)));
+  });
+
+  // Initial render
+  renderCarousel('p1');
+  renderCarousel('p2');
 }
 
 document.querySelectorAll('.stage-card').forEach(card => {
