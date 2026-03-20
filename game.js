@@ -1,8 +1,11 @@
 // --- Title Music ---
+const announcer = new Audio('assets/xenocs_fighter_announcer.mp3');
+announcer.volume = 0.7;
 const titleMusic = new Audio('assets/titlemusic.mp3');
 titleMusic.loop = true;
 titleMusic.volume = 0.5;
 let musicEnabled = true;
+let announcerPlayed = false;
 
 const musicToggle = document.getElementById('music-toggle');
 const musicIconOn = document.getElementById('music-icon-on');
@@ -14,12 +17,26 @@ function updateMusicIcon() {
 }
 
 function playTitleMusic() {
-  if (musicEnabled && titleMusic.paused) {
+  if (!musicEnabled) return;
+  if (!announcerPlayed) {
+    announcerPlayed = true;
+    announcer.play().then(() => {
+      announcer.addEventListener('ended', () => {
+        if (musicEnabled && titleMusic.paused && !fightScreen.classList.contains('active')) {
+          titleMusic.play().catch(() => {});
+        }
+      }, { once: true });
+    }).catch(() => {
+      titleMusic.play().catch(() => {});
+    });
+  } else if (titleMusic.paused) {
     titleMusic.play().catch(() => {});
   }
 }
 
 function stopTitleMusic() {
+  announcer.pause();
+  announcer.currentTime = 0;
   titleMusic.pause();
   titleMusic.currentTime = 0;
 }
@@ -30,16 +47,17 @@ musicToggle.addEventListener('click', () => {
   if (musicEnabled) {
     // Only auto-play if we're on a menu screen
     if (fightScreen.classList.contains('active')) return;
-    titleMusic.play().catch(() => {});
+    playTitleMusic();
   } else {
+    announcer.pause();
     titleMusic.pause();
   }
 });
 
 // Start music on first user interaction (browser autoplay policy)
 function ensureMusicStarted() {
-  if (musicEnabled && titleMusic.paused && !fightScreen.classList.contains('active')) {
-    titleMusic.play().catch(() => {});
+  if (musicEnabled && !fightScreen.classList.contains('active')) {
+    playTitleMusic();
   }
 }
 document.addEventListener('click', ensureMusicStarted, { once: true });
@@ -788,7 +806,6 @@ rematchBtn.addEventListener('click', resetMatch);
 
 async function init() {
   document.body.classList.add('white-bg');
-  playTitleMusic();
   try {
     CHAR_DATA = await CharacterLoader.loadAll();
     buildSelectScreen();
