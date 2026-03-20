@@ -1,6 +1,44 @@
 // --- Title Music ---
 const announcer = new Audio('assets/xenocs_fighter_announcer.mp3');
 announcer.volume = 0.7;
+const crowdCheer = new Audio('assets/Crowd_cheer.mp3');
+const cheerMaxVol = 0.5;
+const cheerFadeTime = 1500; // ms
+crowdCheer.volume = 0;
+
+function fadeInCheer() {
+  crowdCheer.volume = 0;
+  crowdCheer.play().catch(() => {});
+  const step = 30;
+  const inc = cheerMaxVol / (cheerFadeTime / step);
+  const fade = setInterval(() => {
+    if (crowdCheer.volume + inc >= cheerMaxVol) {
+      crowdCheer.volume = cheerMaxVol;
+      clearInterval(fade);
+      // Start fade out near the end
+      const remaining = (crowdCheer.duration - crowdCheer.currentTime) * 1000;
+      if (remaining > cheerFadeTime) {
+        setTimeout(fadeOutCheer, remaining - cheerFadeTime);
+      }
+    } else {
+      crowdCheer.volume += inc;
+    }
+  }, step);
+}
+
+function fadeOutCheer() {
+  const step = 30;
+  const dec = crowdCheer.volume / (cheerFadeTime / step);
+  const fade = setInterval(() => {
+    if (crowdCheer.volume - dec <= 0) {
+      crowdCheer.volume = 0;
+      crowdCheer.pause();
+      clearInterval(fade);
+    } else {
+      crowdCheer.volume -= dec;
+    }
+  }, step);
+}
 const titleMusic = new Audio('assets/titlemusic.mp3');
 titleMusic.loop = true;
 titleMusic.volume = 0.5;
@@ -22,8 +60,9 @@ function playTitleMusic() {
     announcerPlayed = true;
     announcer.play().then(() => {
       announcer.addEventListener('ended', () => {
-        if (musicEnabled && titleMusic.paused && !fightScreen.classList.contains('active')) {
+        if (musicEnabled && !fightScreen.classList.contains('active')) {
           titleMusic.play().catch(() => {});
+          fadeInCheer();
         }
       }, { once: true });
     }).catch(() => {
@@ -37,6 +76,8 @@ function playTitleMusic() {
 function stopTitleMusic() {
   announcer.pause();
   announcer.currentTime = 0;
+  if (!crowdCheer.paused) fadeOutCheer();
+  else { crowdCheer.volume = 0; }
   titleMusic.pause();
   titleMusic.currentTime = 0;
 }
@@ -50,6 +91,7 @@ musicToggle.addEventListener('click', () => {
     playTitleMusic();
   } else {
     announcer.pause();
+    crowdCheer.pause();
     titleMusic.pause();
   }
 });
