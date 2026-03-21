@@ -758,34 +758,46 @@ window.addEventListener('keyup', (e) => state.keys.delete(e.key));
 (function initMobileGamepad() {
   const pad = document.getElementById('mobile-gamepad');
   if (!pad) return;
-  const btns = pad.querySelectorAll('.gp-btn');
 
-  function addKey(btn) {
-    const key = btn.dataset.key;
-    if (key) state.keys.add(key);
-    btn.classList.add('pressed');
-  }
+  // Track active touches per button to handle multi-touch correctly
+  const activeKeys = new Map(); // touchId -> key
 
-  function removeKey(btn) {
-    const key = btn.dataset.key;
-    if (key) state.keys.delete(key);
-    btn.classList.remove('pressed');
-  }
+  pad.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for (const touch of e.changedTouches) {
+      const btn = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (btn && btn.dataset.key) {
+        activeKeys.set(touch.identifier, btn.dataset.key);
+        state.keys.add(btn.dataset.key);
+        btn.classList.add('pressed');
+      }
+    }
+  }, { passive: false });
 
-  btns.forEach(btn => {
-    btn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      addKey(btn);
-    }, { passive: false });
+  pad.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    for (const touch of e.changedTouches) {
+      const key = activeKeys.get(touch.identifier);
+      if (key) {
+        state.keys.delete(key);
+        activeKeys.delete(touch.identifier);
+        // Remove pressed class from matching button
+        const btn = pad.querySelector(`[data-key="${key}"]`);
+        if (btn) btn.classList.remove('pressed');
+      }
+    }
+  }, { passive: false });
 
-    btn.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      removeKey(btn);
-    }, { passive: false });
-
-    btn.addEventListener('touchcancel', (e) => {
-      removeKey(btn);
-    });
+  pad.addEventListener('touchcancel', (e) => {
+    for (const touch of e.changedTouches) {
+      const key = activeKeys.get(touch.identifier);
+      if (key) {
+        state.keys.delete(key);
+        activeKeys.delete(touch.identifier);
+        const btn = pad.querySelector(`[data-key="${key}"]`);
+        if (btn) btn.classList.remove('pressed');
+      }
+    }
   });
 })();
 
