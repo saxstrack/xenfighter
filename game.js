@@ -754,6 +754,41 @@ function loop(now) {
 window.addEventListener('keydown', (e) => state.keys.add(e.key));
 window.addEventListener('keyup', (e) => state.keys.delete(e.key));
 
+// Mobile gamepad touch handling
+(function initMobileGamepad() {
+  const pad = document.getElementById('mobile-gamepad');
+  if (!pad) return;
+  const btns = pad.querySelectorAll('.gp-btn');
+
+  function addKey(btn) {
+    const key = btn.dataset.key;
+    if (key) state.keys.add(key);
+    btn.classList.add('pressed');
+  }
+
+  function removeKey(btn) {
+    const key = btn.dataset.key;
+    if (key) state.keys.delete(key);
+    btn.classList.remove('pressed');
+  }
+
+  btns.forEach(btn => {
+    btn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      addKey(btn);
+    }, { passive: false });
+
+    btn.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      removeKey(btn);
+    }, { passive: false });
+
+    btn.addEventListener('touchcancel', (e) => {
+      removeKey(btn);
+    });
+  });
+})();
+
 function buildSelectScreen() {
   const ids = Array.from(CHAR_DATA.keys());
   const carouselState = { p1: 0, p2: Math.min(ids.length - 1, 1) };

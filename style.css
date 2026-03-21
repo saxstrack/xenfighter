@@ -240,6 +240,10 @@ canvas {
 }
 .music-btn:hover { background: rgba(229, 57, 53, 0.25); border-color: rgba(229, 57, 53, 0.8); color: #fff; }
 
+.game-wrap {
+  position: relative;
+}
+
 .result {
   margin-top: 12px;
   font-size: 24px;
@@ -247,3 +251,82 @@ canvas {
   text-align: center;
 }
 .hidden { display: none; }
+
+/* Mobile gamepad overlay — hidden on non-touch devices */
+.mobile-gamepad {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .mobile-gamepad {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    pointer-events: none;
+    padding: 10px 14px 18px;
+    z-index: 10;
+  }
+  .gp-dpad, .gp-actions {
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .gp-dpad-mid {
+    display: flex;
+    gap: 28px;
+  }
+  .gp-actions {
+    flex-direction: row;
+    gap: 10px;
+    align-items: flex-end;
+  }
+  .gp-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 18px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    touch-action: manipulation;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: pointer;
+  }
+  .gp-btn:active, .gp-btn.pressed {
+    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(255, 255, 255, 0.8);
+  }
+  .gp-punch {
+    background: rgba(229, 57, 53, 0.25);
+    border-color: rgba(229, 57, 53, 0.6);
+    width: 58px;
+    height: 58px;
+    font-size: 20px;
+  }
+  .gp-kick {
+    background: rgba(33, 150, 243, 0.25);
+    border-color: rgba(33, 150, 243, 0.6);
+    width: 58px;
+    height: 58px;
+    font-size: 20px;
+  }
+  .gp-punch:active, .gp-punch.pressed {
+    background: rgba(229, 57, 53, 0.5);
+  }
+  .gp-kick:active, .gp-kick.pressed {
+    background: rgba(33, 150, 243, 0.5);
+  }
+}

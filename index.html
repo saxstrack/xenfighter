@@ -76,7 +76,23 @@
           <div class="bar"><div id="p2-health" class="fill p2"></div></div>
         </div>
       </div>
-      <canvas id="game" width="960" height="540"></canvas>
+      <div class="game-wrap">
+        <canvas id="game" width="960" height="540"></canvas>
+        <div id="mobile-gamepad" class="mobile-gamepad">
+          <div class="gp-dpad">
+            <button class="gp-btn gp-up" data-key="w">&#9650;</button>
+            <div class="gp-dpad-mid">
+              <button class="gp-btn gp-left" data-key="a">&#9664;</button>
+              <button class="gp-btn gp-right" data-key="d">&#9654;</button>
+            </div>
+            <button class="gp-btn gp-down" data-key="s">&#9660;</button>
+          </div>
+          <div class="gp-actions">
+            <button class="gp-btn gp-punch" data-key="f">P</button>
+            <button class="gp-btn gp-kick" data-key="g">K</button>
+          </div>
+        </div>
+      </div>
       <div id="result" class="result hidden"></div>
       <button id="rematch-btn" class="hidden">Rematch</button>
     </section>
