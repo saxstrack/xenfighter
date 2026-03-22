@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Xenocs Fighter</title>
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <div id="app">
@@ -27,6 +27,12 @@
       <div class="select-row">
         <div class="select-col">
           <h3>Player 1</h3>
+          <div class="player-controls-wrap">
+            <div class="player-mode-toggle" id="p1-mode">
+              <button class="mode-btn active" data-mode="human">Human</button>
+              <button class="mode-btn" data-mode="cpu">CPU</button>
+            </div>
+          </div>
           <div class="carousel" id="p1-carousel">
             <button class="carousel-arrow left" data-dir="-1">&#9664;</button>
             <div class="carousel-display" id="p1-select"></div>
@@ -35,6 +41,12 @@
         </div>
         <div class="select-col">
           <h3>Player 2</h3>
+          <div class="player-controls-wrap">
+            <div class="player-mode-toggle" id="p2-mode">
+              <button class="mode-btn active" data-mode="human">Human</button>
+              <button class="mode-btn" data-mode="cpu">CPU</button>
+            </div>
+          </div>
           <div class="carousel" id="p2-carousel">
             <button class="carousel-arrow left" data-dir="-1">&#9664;</button>
             <div class="carousel-display" id="p2-select"></div>
@@ -98,6 +110,7 @@
     </section>
   </div>
   <script src="character-loader.js?v=3"></script>
-  <script src="game.js?v=3"></script>
+  <script src="ai.js?v=1"></script>
+  <script src="game.js?v=4"></script>
 </body>
 </html>

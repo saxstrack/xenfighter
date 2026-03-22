@@ -151,7 +151,7 @@ function getChar(id) {
   return CHAR_DATA.get(id);
 }
 
-function makePlayer(x, controls, charId) {
+function makePlayer(x, controls, charId, ai) {
   return {
     x,
     y: H - 20 - 240,
@@ -174,6 +174,7 @@ function makePlayer(x, controls, charId) {
     idleTime: 0,
     tauntMsg: null,
     tauntTimer: 0,
+    ai: ai || null,
   };
 }
 
@@ -204,9 +205,11 @@ function resetMatch() {
   state.time = 99;
   state.timerAcc = 0;
   state.lastTime = performance.now();
+  const p1Ai = getAiConfig('p1');
+  const p2Ai = getAiConfig('p2');
   state.players = [
-    makePlayer(220, P1_KEYS, p1Selection.char),
-    makePlayer(740, P2_KEYS, p2Selection.char),
+    makePlayer(220, P1_KEYS, p1Selection.char, p1Ai),
+    makePlayer(740, P2_KEYS, p2Selection.char, p2Ai),
   ];
   state.players[0].facing = 1;
   state.players[1].facing = -1;
@@ -331,6 +334,9 @@ function processInput(p, dt) {
 
 function simulate(dt) {
   const [p1, p2] = state.players;
+
+  if (p1.ai) updateAI(p1, p2, dt, state.keys);
+  if (p2.ai) updateAI(p2, p1, dt, state.keys);
 
   processInput(p1, dt);
   processInput(p2, dt);
@@ -892,6 +898,36 @@ nextBtn.addEventListener('click', goToStageSelect);
 backBtn.addEventListener('click', goToCharSelect);
 startBtn.addEventListener('click', startGame);
 rematchBtn.addEventListener('click', resetMatch);
+
+// --- AI toggle wiring ---
+
+function getAiConfig(player) {
+  const modeEl = document.getElementById(player + '-mode');
+  const activeBtn = modeEl.querySelector('.mode-btn.active');
+  if (!activeBtn || activeBtn.dataset.mode !== 'cpu') return null;
+  return createAIState('easy');
+}
+
+function initModeToggles(player) {
+  const modeEl = document.getElementById(player + '-mode');
+
+  modeEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.mode-btn');
+    if (!btn) return;
+    modeEl.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+}
+
+initModeToggles('p1');
+initModeToggles('p2');
+
+// Default P2 to CPU on mobile (touch device or narrow screen)
+if ('ontouchstart' in window || window.matchMedia('(pointer: coarse)').matches) {
+  const p2Mode = document.getElementById('p2-mode');
+  p2Mode.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  p2Mode.querySelector('[data-mode="cpu"]').classList.add('active');
+}
 
 async function init() {
   document.body.classList.add('white-bg');
